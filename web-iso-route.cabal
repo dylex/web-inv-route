@@ -1,0 +1,45 @@
+name:                web-iso-route
+version:             0.1
+synopsis:            Composable, reversible, efficient web routing based on invariants and isomorphisms
+description:         Utilities to route HTTP requests, mainly based on path components.  Path routes are specified using isomorphic transformations and invariant functors, allowing run-time composition (routes can be distributed across modules), reverse and forward routing derived from the same specification, and O(log n) lookups.
+license:             BSD3
+author:              Dylan Simon
+maintainer:          dylan@dylex.net
+copyright:           2016
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.20
+
+flag wai
+  description: Provide wai-compatible interfaces
+
+library
+  exposed-modules:     
+    Web.Route.Class
+    Web.Route.String
+    Web.Route.Map
+    Web.Route.Resolver
+    Web.Route.Parameter
+    Web.Route.Parameter.TypeMap
+    Web.Route.Path.Internal
+    Web.Route.Path
+    Web.Route.Path.Map
+    Web.Route.Method
+    Web.Route.Method.Map
+
+  build-depends:       
+    base >= 4.8 && <5,
+    isomorphism,
+    containers >= 0.5,
+    hashable,
+    unordered-containers,
+    text >= 0.10,
+    bytestring >= 0.10,
+    http-types >= 0.9
+  default-language:    Haskell2010
+  ghc-options: -Wall
+
+  if flag(wai)
+    exposed-modules: Web.Route.Wai
+    build-depends: wai >= 1
+

@@ -1,0 +1,114 @@
+-- |Representations of values that can serve as placeholders, being parsed from "Web.Route.String" data.
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts, TypeSynonymInstances, ScopedTypeVariables, ExistentialQuantification, EmptyCase, DefaultSignatures #-}
+module Web.Route.Parameter 
+  ( Parameter(..)
+  , ParameterType(..)
+  , parameterTypeOf
+  , parseParameterAs
+  ) where
+
+import Control.Monad (guard)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as BSL
+import Data.Hashable (Hashable(..))
+import Data.Int (Int8, Int16, Int32, Int64)
+import Data.Word (Word8, Word16, Word32, Word64)
+import Data.Proxy (Proxy(Proxy))
+import Data.String (IsString(..))
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Read as T
+import Data.Typeable (Typeable, typeRep)
+import Data.Void (Void, absurd)
+import Network.HTTP.Types.Method (Method, StdMethod, parseMethod, renderMethod, renderStdMethod)
+import Text.Read (readMaybe)
+
+import Web.Route.String
+
+-- |A parameter value @a@ that can be parsed from or rendered into string data @s@.
+class (RouteString s, Typeable a) => Parameter s a where
+  parseParameter :: s -> Maybe a
+  renderParameter :: a -> s
+
+  default parseParameter :: Read a => s -> Maybe a
+  parseParameter = readMaybe . toString
+  default renderParameter :: Show a => a -> s
+  renderParameter = fromString . show
+
+instance {-# OVERLAPPABLE #-} (RouteString s) => Parameter s String where
+  parseParameter = Just . toString
+  renderParameter = fromString
+instance Parameter T.Text T.Text where
+  parseParameter = Just
+  renderParameter = id
+instance Parameter TL.Text TL.Text where
+  parseParameter = Just
+  renderParameter = id
+instance Parameter BS.ByteString BS.ByteString where
+  parseParameter = Just
+  renderParameter = id
+instance Parameter BSL.ByteString BSL.ByteString where
+  parseParameter = Just
+  renderParameter = id
+
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Integer
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Int
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Int8
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Int16
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Int32
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Int64
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Word
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Word8
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Word16
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Word32
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Word64
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Float
+instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Double
+
+readText :: T.Reader a -> T.Text -> Maybe a
+readText = (.) $ either (const Nothing) (\(a, t) -> a <$ guard (T.null t))
+
+instance Parameter T.Text Integer where parseParameter = readText (T.signed T.decimal)
+instance Parameter T.Text Int     where parseParameter = readText (T.signed T.decimal)
+instance Parameter T.Text Int8    where parseParameter = readText (T.signed T.decimal)
+instance Parameter T.Text Int16   where parseParameter = readText (T.signed T.decimal)
+instance Parameter T.Text Int32   where parseParameter = readText (T.signed T.decimal)
+instance Parameter T.Text Int64   where parseParameter = readText (T.signed T.decimal)
+instance Parameter T.Text Word    where parseParameter = readText T.decimal
+instance Parameter T.Text Word8   where parseParameter = readText T.decimal
+instance Parameter T.Text Word16  where parseParameter = readText T.decimal
+instance Parameter T.Text Word32  where parseParameter = readText T.decimal
+instance Parameter T.Text Word64  where parseParameter = readText T.decimal
+instance Parameter T.Text Float   where parseParameter = readText T.rational
+instance Parameter T.Text Double  where parseParameter = readText T.double
+
+instance Parameter Method StdMethod where
+  parseParameter = either (const Nothing) Just . parseMethod
+  renderParameter = renderStdMethod
+
+instance Parameter Method (Either BS.ByteString StdMethod) where
+  parseParameter = Just . parseMethod
+  renderParameter = renderMethod
+
+instance RouteString s => Parameter s Void where
+  parseParameter _ = Nothing
+  renderParameter = absurd
+
+
+-- |An existential representation of an instance of @'Parameter' s@, that functions similarly to 'Data.Typeable.TypeRep' but also provides witness to a concrete instance.
+data ParameterType s = forall a . Parameter s a => ParameterType !(Proxy a)
+
+instance Eq (ParameterType s) where
+  ParameterType a == ParameterType b = typeRep a == typeRep b
+instance Ord (ParameterType s) where
+  ParameterType a `compare` ParameterType b = typeRep a `compare` typeRep b
+instance Hashable (ParameterType s) where
+  hashWithSalt s (ParameterType d) = hashWithSalt s (typeRep d)
+
+-- |Similar to 'typeRep'.
+parameterTypeOf :: forall s proxy a . Parameter s a => proxy a -> ParameterType s
+parameterTypeOf _ = ParameterType (Proxy :: Proxy a)
+
+-- |Constrain the type of 'parseParameter', ignoring the first parameter.
+parseParameterAs :: forall s proxy a . Parameter s a => proxy a -> s -> Maybe a
+parseParameterAs _ = parseParameter
