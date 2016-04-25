@@ -1,7 +1,9 @@
--- |Representations of values that can serve as placeholders, being parsed from "Web.Route.String" data.
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts, TypeSynonymInstances, ScopedTypeVariables, ExistentialQuantification, EmptyCase, DefaultSignatures #-}
-module Web.Route.Parameter 
+-- |Representations of values that can serve as placeholders, being parsed from "Web.Route.Invertible.String" data.
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, FlexibleContexts, TypeSynonymInstances, ScopedTypeVariables, ExistentialQuantification, EmptyCase, DefaultSignatures, FunctionalDependencies #-}
+module Web.Route.Invertible.Parameter 
   ( Parameter(..)
+  , Parameterized(..)
+  , param
   , ParameterType(..)
   , parameterTypeOf
   , parseParameterAs
@@ -9,21 +11,19 @@ module Web.Route.Parameter
 
 import Control.Monad (guard)
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy as BSL
 import Data.Hashable (Hashable(..))
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64)
 import Data.Proxy (Proxy(Proxy))
 import Data.String (IsString(..))
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Read as T
 import Data.Typeable (Typeable, typeRep)
 import Data.Void (Void, absurd)
 import Network.HTTP.Types.Method (Method, StdMethod, parseMethod, renderMethod, renderStdMethod)
 import Text.Read (readMaybe)
 
-import Web.Route.String
+import Web.Route.Invertible.String
 
 -- |A parameter value @a@ that can be parsed from or rendered into string data @s@.
 class (RouteString s, Typeable a) => Parameter s a where
@@ -41,13 +41,7 @@ instance {-# OVERLAPPABLE #-} (RouteString s) => Parameter s String where
 instance Parameter T.Text T.Text where
   parseParameter = Just
   renderParameter = id
-instance Parameter TL.Text TL.Text where
-  parseParameter = Just
-  renderParameter = id
 instance Parameter BS.ByteString BS.ByteString where
-  parseParameter = Just
-  renderParameter = id
-instance Parameter BSL.ByteString BSL.ByteString where
   parseParameter = Just
   renderParameter = id
 
@@ -94,6 +88,13 @@ instance RouteString s => Parameter s Void where
   parseParameter _ = Nothing
   renderParameter = absurd
 
+
+class Parameterized s p | p -> s where
+  parameter :: Parameter s a => p a
+
+-- |Create a placeholder 'parameter' with the type of the argument, which is ignored.
+param :: (Parameterized s p, Parameter s a) => a -> p a
+param _ = parameter
 
 -- |An existential representation of an instance of @'Parameter' s@, that functions similarly to 'Data.Typeable.TypeRep' but also provides witness to a concrete instance.
 data ParameterType s = forall a . Parameter s a => ParameterType !(Proxy a)
