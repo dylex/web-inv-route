@@ -49,6 +49,6 @@ library
   ghc-options: -Wall
 
   if flag(wai)
-    -- exposed-modules: Web.Route.Wai
+    exposed-modules: Web.Route.Invertible.Wai
     build-depends: wai >= 1
 

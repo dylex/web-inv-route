@@ -1,22 +1,24 @@
-module Web.Route.Wai
-  ( routePath
-  , routeMethodPath
+module Web.Route.Invertible.Wai
+  ( routeWai
+  , routeWaiApplication
   ) where
 
-import Control.Arrow (left)
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.Text as T
 import qualified Network.Wai as Wai
-import Network.HTTP.Types.Header (ResponseHeaders, hAllow)
-import Network.HTTP.Types.Status (Status, notFound404, methodNotAllowed405)
+import Network.HTTP.Types.Header (ResponseHeaders)
+import Network.HTTP.Types.Status (Status)
 
-import qualified Web.Route.Path as P
-import qualified Web.Route.Method as M
+import Web.Route.Invertible.Method
+import Web.Route.Invertible.Request
+import qualified Web.Route.Invertible.Map.Route as RM
 
-routePath :: Wai.Request -> P.PathMap T.Text a -> Either Status a
-routePath q m = maybe (Left notFound404) Right $ P.lookup (Wai.pathInfo q) m
+waiRequest :: Wai.Request -> Request
+waiRequest q = Request
+  { requestMethod = toMethod $ Wai.requestMethod q
+  , requestPath = Wai.pathInfo q
+  }
 
-routeMethodPath :: Wai.Request -> M.MethodPathMap T.Text a -> Either (Status, ResponseHeaders) a
-routeMethodPath q m = left err $ M.lookup (Wai.requestMethod q) (Wai.pathInfo q) m where
-  err [] = (notFound404, [])
-  err a = (methodNotAllowed405, [(hAllow, BS.intercalate (BS.singleton ',') a)])
+routeWai :: Wai.Request -> RM.RouteMap a -> Either (Status, ResponseHeaders) a
+routeWai = RM.lookup . waiRequest
+
+routeWaiApplication :: RM.RouteMap Wai.Application -> Wai.Application
+routeWaiApplication m q r = either (\(s, h) -> r $ Wai.responseBuilder s h mempty) (\a -> a q r) $ routeWai q m

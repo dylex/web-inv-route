@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, OverloadedStrings #-}
 module Web.Route.Invertible.Method
   ( Method(..)
-  , IsMethod
+  , IsMethod(..)
   ) where
 
 import Prelude hiding (lookup)

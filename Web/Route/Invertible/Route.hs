@@ -1,5 +1,6 @@
 module Web.Route.Invertible.Route
   ( Route(..)
+  , action
   ) where
 
 import Web.Route.Invertible.Method
@@ -10,3 +11,6 @@ data Route p a = Route
   , routePath :: Path p
   , routeAction :: p -> a
   }
+
+action :: IsMethod m => m -> Path p -> (p -> a) -> Route p a
+action m p f = Route (toMethod m) p f
