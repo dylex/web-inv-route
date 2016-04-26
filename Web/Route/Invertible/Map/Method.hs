@@ -1,21 +1,22 @@
 module Web.Route.Invertible.Map.Method
   ( MethodMap
   , fallbackHEADtoGET
-  , lookupMethod
+  , lookup
   ) where
 
+import Prelude hiding (lookup)
+
 import qualified Data.Map.Strict as M
-import Network.HTTP.Types.Method (StdMethod(GET, HEAD), Method)
 
-import Web.Route.Invertible.Parameter
+import Web.Route.Invertible.Method
 import Web.Route.Invertible.Map
-import Web.Route.Invertible.Map.Monoid
+import qualified Web.Route.Invertible.Map.Monoid as MM
 
-type MethodMap a = MonoidMap StdMethod a
+type MethodMap a = MM.MonoidMap Method a
 
 fallbackHEADtoGET :: MethodMap a -> MethodMap a
-fallbackHEADtoGET (MonoidMap m) = MonoidMap $ fallback HEAD GET m
+fallbackHEADtoGET (MM.MonoidMap m) = MM.MonoidMap $ fallback HEAD GET m
 
-lookupMethod :: Method -> MethodMap a -> Either [Method] a
-lookupMethod s (MonoidMap m) =
-  maybe (Left $ map renderParameter $ M.keys m) Right $ lookupParameter s m
+lookup :: Method -> MethodMap a -> Either [Method] a
+lookup s (MM.MonoidMap m) =
+  maybe (Left $ M.keys m) Right $ M.lookup s m

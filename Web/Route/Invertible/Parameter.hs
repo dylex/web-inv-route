@@ -20,7 +20,6 @@ import qualified Data.Text as T
 import qualified Data.Text.Read as T
 import Data.Typeable (Typeable, typeRep)
 import Data.Void (Void, absurd)
-import Network.HTTP.Types.Method (Method, StdMethod, parseMethod, renderMethod, renderStdMethod)
 import Text.Read (readMaybe)
 
 import Web.Route.Invertible.String
@@ -75,14 +74,6 @@ instance Parameter T.Text Word32  where parseParameter = readText T.decimal
 instance Parameter T.Text Word64  where parseParameter = readText T.decimal
 instance Parameter T.Text Float   where parseParameter = readText T.rational
 instance Parameter T.Text Double  where parseParameter = readText T.double
-
-instance Parameter Method StdMethod where
-  parseParameter = either (const Nothing) Just . parseMethod
-  renderParameter = renderStdMethod
-
-instance Parameter Method (Either BS.ByteString StdMethod) where
-  parseParameter = Just . parseMethod
-  renderParameter = renderMethod
 
 instance RouteString s => Parameter s Void where
   parseParameter _ = Nothing

@@ -1,13 +1,11 @@
-module Web.Route.Request
+module Web.Route.Invertible.Request
   ( Request(..)
   ) where
 
-import Data.ByteString (ByteString)
-import Network.HTTP.Types.Method (StdMethod)
-
-import Web.Route.Path.Internal
+import Web.Route.Invertible.Path
+import Web.Route.Invertible.Method
 
 data Request = Request
-  { requestMethod :: Either ByteString StdMethod
+  { requestMethod :: Method
   , requestPath :: [PathString]
   } deriving (Show)

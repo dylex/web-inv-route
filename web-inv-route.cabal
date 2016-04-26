@@ -20,6 +20,9 @@ library
     Web.Route.Invertible.Placeholder
     Web.Route.Invertible.Path.Types
     Web.Route.Invertible.Path
+    Web.Route.Invertible.Method
+    Web.Route.Invertible.Route
+    Web.Route.Invertible.Request
     Web.Route.Invertible.Monoid.Exactly
     Web.Route.Invertible.Monoid.Prioritized
     Web.Route.Invertible.Map
@@ -30,6 +33,7 @@ library
     Web.Route.Invertible.Map.Placeholder
     Web.Route.Invertible.Map.Path
     Web.Route.Invertible.Map.Method
+    Web.Route.Invertible.Map.Route
 
   build-depends:       
     base >= 4.8 && <5,

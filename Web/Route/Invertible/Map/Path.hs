@@ -18,6 +18,7 @@
 {-# LANGUAGE GADTs, TupleSections, ScopedTypeVariables #-}
 module Web.Route.Invertible.Map.Path
   ( PathMap(..)
+  , PathValue
   , unionWith
   , union
   , singleton
@@ -63,11 +64,13 @@ unionWith f (PathMap m1 v1) (PathMap m2 v2) =
 union :: PathMap a -> PathMap a -> PathMap a
 union = unionWith (<|>)
 
-placeholderValue :: Placeholder s a -> [Dynamic] -> a
+type PathValue = [Dynamic]
+
+placeholderValue :: Placeholder s a -> PathValue -> a
 placeholderValue (PlaceholderFixed _) _ = ()
 placeholderValue PlaceholderParameter ~(x:_) = fromDyn x (error "PathMap: type error")
 
-singleton :: Path a -> PathMap ([Dynamic] -> a)
+singleton :: Path a -> PathMap (PathValue -> a)
 singleton PathEmpty = leaf $ Just $ const ()
 singleton (PathPlaceholder p) =
   PathMap (PM.singleton p $ leaf $ Just $ placeholderValue p) Nothing
@@ -83,13 +86,13 @@ singleton (PathChoose p q) =
   (fmap Left  <$> singleton p) `union`
   (fmap Right <$> singleton q)
 
-lookup :: [PathString] -> PathMap a -> [([Dynamic], a)]
+lookup :: [PathString] -> PathMap a -> [(PathValue, a)]
 lookup (s:l) (PathMap m _) =
   either (lookup l) (concatMap $ \(x,n) -> first (x:) <$> lookup l n) $ PM.lookup s m
 lookup [] (PathMap _ Nothing) = mzero
 lookup [] (PathMap _ (Just x)) = return ([], x)
 
-type PathMapApp m a = PathMap (m ([Dynamic] -> a))
+type PathMapApp m a = PathMap (m (PathValue -> a))
 
 -- |Create a map from a single 'Path' parser.  Since this abstracts the type of the path @p@ (but not @a@), paths with different underlying types can be combined in the same map.
 singletonApp :: Functor m => Path a -> m (a -> b) -> PathMapApp m b
