@@ -18,7 +18,7 @@ library
     Web.Route.Invertible.String
     Web.Route.Invertible.Parameter
     Web.Route.Invertible.Placeholder
-    Web.Route.Invertible.Path.Types
+    Web.Route.Invertible.Sequence
     Web.Route.Invertible.Path
     Web.Route.Invertible.Method
     Web.Route.Invertible.Route
@@ -31,20 +31,19 @@ library
     Web.Route.Invertible.Map.Const
     Web.Route.Invertible.Map.ParameterType
     Web.Route.Invertible.Map.Placeholder
-    Web.Route.Invertible.Map.Path
+    Web.Route.Invertible.Map.Sequence
     Web.Route.Invertible.Map.Method
     Web.Route.Invertible.Map.Route
 
   build-depends:       
     base >= 4.8 && <5,
-    invertible,
     containers >= 0.5,
-    transformers >= 0.2,
     hashable,
     unordered-containers,
     text >= 0.10,
     bytestring >= 0.10,
-    http-types >= 0.9
+    http-types >= 0.9,
+    invertible
   default-language:    Haskell2010
   ghc-options: -Wall
 

@@ -9,8 +9,8 @@ import Control.Applicative ((<|>))
 import Data.Monoid ((<>))
 
 data DefaultMap m v = DefaultMap
-  { defaultMap :: m v
-  , defaultValue :: Maybe v
+  { defaultMap :: !(m v)
+  , defaultValue :: !(Maybe v)
   }
 
 instance Functor m => Functor (DefaultMap m) where

@@ -1,5 +1,6 @@
 module Web.Route.Invertible.Wai
   ( routeWai
+  , routeWaiApplicationError
   , routeWaiApplication
   ) where
 
@@ -9,7 +10,7 @@ import Network.HTTP.Types.Status (Status)
 
 import Web.Route.Invertible.Method
 import Web.Route.Invertible.Request
-import qualified Web.Route.Invertible.Map.Route as RM
+import Web.Route.Invertible.Map.Route
 
 waiRequest :: Wai.Request -> Request
 waiRequest q = Request
@@ -17,8 +18,11 @@ waiRequest q = Request
   , requestPath = Wai.pathInfo q
   }
 
-routeWai :: Wai.Request -> RM.RouteMap a -> Either (Status, ResponseHeaders) a
-routeWai = RM.lookup . waiRequest
+routeWai :: Wai.Request -> RouteMap a -> Either (Status, ResponseHeaders) a
+routeWai = routeRequest . waiRequest
 
-routeWaiApplication :: RM.RouteMap Wai.Application -> Wai.Application
-routeWaiApplication m q r = either (\(s, h) -> r $ Wai.responseBuilder s h mempty) (\a -> a q r) $ routeWai q m
+routeWaiApplicationError :: (Status -> ResponseHeaders -> Wai.Application) -> RouteMap Wai.Application -> Wai.Application
+routeWaiApplicationError e m q r = either (\(s, h) -> e s h q r) (\a -> a q r) $ routeWai q m
+
+routeWaiApplication :: RouteMap Wai.Application -> Wai.Application
+routeWaiApplication = routeWaiApplicationError $ \s h _ r -> r $ Wai.responseBuilder s h mempty

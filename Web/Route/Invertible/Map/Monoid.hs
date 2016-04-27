@@ -3,9 +3,9 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Web.Route.Invertible.Map.Monoid
   ( MonoidMap(..)
-  , insert
-  , fromList
-  , lookup
+  , insertMonoid
+  , fromMonoidList
+  , lookupMonoid
   ) where
 
 import Prelude hiding (lookup)
@@ -27,14 +27,14 @@ instance Functor (MonoidMap k) where
   fmap f (MonoidMap m) = MonoidMap $ M.map f m
 
 -- |Insert a new key and value in the map. If the key is already present in the map, the associated value is combined with the supplied value. Equivalent to @'M.insertWith' 'mappend'@.
-insert :: (Ord k, Monoid a) => k -> a -> MonoidMap k a -> MonoidMap k a
-insert k a (MonoidMap m) = MonoidMap $ M.insertWith mappend k a m
+insertMonoid :: (Ord k, Monoid a) => k -> a -> MonoidMap k a -> MonoidMap k a
+insertMonoid k a (MonoidMap m) = MonoidMap $ M.insertWith mappend k a m
 
 -- |Build a map from a list of key/value pairs. If the list contains more than one value for the same key, the values are combined. Equivalent to @'M.fromListWith' 'mappend'@.
-fromList :: (Ord k, Monoid a) => [(k, a)] -> MonoidMap k a
-fromList = MonoidMap . M.fromListWith mappend
+fromMonoidList :: (Ord k, Monoid a) => [(k, a)] -> MonoidMap k a
+fromMonoidList = MonoidMap . M.fromListWith mappend
 
 -- |Lookup the value at a key in the map, returning 'mempty' if the key isn't in the map.
-lookup :: (Ord k, Monoid a) => k -> MonoidMap k a -> a
-lookup k (MonoidMap m) = fold $ M.lookup k m
+lookupMonoid :: (Ord k, Monoid a) => k -> MonoidMap k a -> a
+lookupMonoid k (MonoidMap m) = fold $ M.lookup k m
 

@@ -1,7 +1,9 @@
 module Web.Route.Invertible.Map.Method
   ( MethodMap
-  , fallbackHEADtoGET
-  , lookup
+  , fallbackMethodHEADtoGET
+  , fallbackDefaultMethodHEADtoGET
+  , lookupMethod
+  , lookupDefaultMethod
   ) where
 
 import Prelude hiding (lookup)
@@ -10,13 +12,24 @@ import qualified Data.Map.Strict as M
 
 import Web.Route.Invertible.Method
 import Web.Route.Invertible.Map
-import qualified Web.Route.Invertible.Map.Monoid as MM
+import Web.Route.Invertible.Map.Monoid
+import Web.Route.Invertible.Map.Default
 
-type MethodMap a = MM.MonoidMap Method a
+type MethodMap = MonoidMap Method
 
-fallbackHEADtoGET :: MethodMap a -> MethodMap a
-fallbackHEADtoGET (MM.MonoidMap m) = MM.MonoidMap $ fallback HEAD GET m
+fallbackMethodHEADtoGET :: MethodMap a -> MethodMap a
+fallbackMethodHEADtoGET = MonoidMap . fallback HEAD GET . monoidMap
 
-lookup :: Method -> MethodMap a -> Either [Method] a
-lookup s (MM.MonoidMap m) =
-  maybe (Left $ M.keys m) Right $ M.lookup s m
+fallbackDefaultMethodHEADtoGET :: DefaultMap MethodMap a -> DefaultMap MethodMap a
+fallbackDefaultMethodHEADtoGET (DefaultMap m d) = DefaultMap (fallbackMethodHEADtoGET m) d
+
+orKeys :: MethodMap a -> Maybe a -> Either [Method] a
+orKeys (MonoidMap m) = maybe (Left $ M.keys m) Right
+
+lookupMethod :: Method -> MethodMap a -> Either [Method] a
+lookupMethod s m =
+  orKeys m $ M.lookup s $ monoidMap m
+
+lookupDefaultMethod :: Method -> DefaultMap MethodMap a -> Either [Method] a
+lookupDefaultMethod s d =
+  orKeys (defaultMap d) $ lookupDefault (M.lookup s . monoidMap) d

@@ -15,7 +15,7 @@ data Placeholder s a where
   PlaceholderFixed :: !s -> Placeholder s ()
   PlaceholderParameter :: Parameter s a => Placeholder s a
 
-instance RouteString s => IsString (Placeholder s ()) where
+instance IsString s => IsString (Placeholder s ()) where
   fromString = PlaceholderFixed . fromString
 
 instance RouteString s => Parameterized s (Placeholder s) where
