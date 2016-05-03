@@ -8,13 +8,15 @@ import qualified Network.Wai as Wai
 import Network.HTTP.Types.Header (ResponseHeaders)
 import Network.HTTP.Types.Status (Status)
 
+import Web.Route.Invertible.Host
 import Web.Route.Invertible.Method
 import Web.Route.Invertible.Request
 import Web.Route.Invertible.Map.Route
 
 waiRequest :: Wai.Request -> Request
 waiRequest q = Request
-  { requestMethod = toMethod $ Wai.requestMethod q
+  { requestHost = maybe [] splitHost $ Wai.requestHeaderHost q
+  , requestMethod = toMethod $ Wai.requestMethod q
   , requestPath = Wai.pathInfo q
   }
 

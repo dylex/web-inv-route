@@ -25,6 +25,10 @@ import Text.Read (readMaybe)
 import Web.Route.Invertible.String
 
 -- |A parameter value @a@ that can be parsed from or rendered into string data @s@.
+-- @parseParameter@ must inverse @renderParameter@:
+--
+--   * @parseParameter . renderParameter == Just@
+--   
 class (RouteString s, Typeable a) => Parameter s a where
   parseParameter :: s -> Maybe a
   renderParameter :: a -> s

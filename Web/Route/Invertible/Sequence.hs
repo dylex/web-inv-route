@@ -14,6 +14,7 @@
 {-# LANGUAGE FlexibleInstances, FlexibleContexts, MultiParamTypeClasses, GADTs, TypeOperators, TupleSections #-}
 module Web.Route.Invertible.Sequence
   ( Sequence(..)
+  , wildcard
   , sequenceValues
   , renderSequence
   , readsSequence
@@ -62,6 +63,10 @@ instance Parameterized s (Sequence s) where
 instance IsString s => IsString (Sequence s ()) where
   fromString = SequencePlaceholder . fromString
 
+-- |Ignore an arbitrary sequence tail of parameters, always generating the same thing.
+wildcard :: (Parameterized s f, MonoidalAlt f, Parameter s a) => [a] -> f ()
+wildcard d = d >$ manyI parameter
+
 -- |Realize a 'Sequence' as instantiated by a value to a sequence of 'PlaceholderValue's.
 sequenceValues :: Sequence s a -> a -> [PlaceholderValue s]
 sequenceValues SequenceEmpty () = []
@@ -96,9 +101,10 @@ parseSequence p l = do
 
 -- |Reverse the order of a sequence, such that @reverseSequence p@ parses/produces @reverse l@ iff @p@ parses/produces @l@.
 -- Since sequences are matched left-to-right, this lets you match them right-to-left.
+-- It probably goes without saying, but this won't work for infinite sequences, such as those produced by 'while'.
 reverseSequence :: Sequence s a -> Sequence s a
 reverseSequence (SequenceTransform f (SequenceJoin p q)) = SequenceTransform (f I.. I.swap) (SequenceJoin (reverseSequence q) (reverseSequence p))
 reverseSequence (SequenceTransform f p) = SequenceTransform f (reverseSequence p)
-reverseSequence (SequenceJoin p q) = SequenceTransform I.swap $ SequenceJoin q p
+reverseSequence (SequenceJoin p q) = SequenceTransform I.swap $ SequenceJoin (reverseSequence q) (reverseSequence p)
 reverseSequence (SequenceChoose p q) = SequenceChoose (reverseSequence p) (reverseSequence q)
 reverseSequence p = p

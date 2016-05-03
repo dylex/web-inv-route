@@ -2,7 +2,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Web.Route.Invertible.Map.Const
   ( ConstMap(..)
-  , singletonConst
+  , withConstMap
+  , constantMap
+  , constantValue
   , lookupConst
   , flattenConstMap
   , flattenConstDefaultMap
@@ -23,9 +25,14 @@ instance (Monoid v, Monoid (m v)) => Monoid (ConstMap m v) where
   mempty = ConstMap mempty mempty
   mappend (ConstMap m1 v1) (ConstMap m2 v2) = ConstMap (m1 <> m2) (v1 <> v2)
 
-singletonConst :: (Monoid v, Monoid (m v)) => Maybe (v -> m v) -> v -> ConstMap m v
-singletonConst Nothing v = ConstMap mempty v
-singletonConst (Just f) v = ConstMap (f v) mempty
+withConstMap :: (m v -> m v) -> ConstMap m v -> ConstMap m v
+withConstMap f (ConstMap m v) = ConstMap (f m) v
+
+constantMap :: Monoid v => m v -> ConstMap m v
+constantMap m = ConstMap m mempty
+
+constantValue :: Monoid (m v) => v -> ConstMap m v
+constantValue = ConstMap mempty
 
 lookupConst :: Monoid v => (m v -> v) -> ConstMap m v -> v
 lookupConst l (ConstMap m v) = l m <> v

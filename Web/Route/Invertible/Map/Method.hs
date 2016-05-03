@@ -21,7 +21,7 @@ fallbackMethodHEADtoGET :: MethodMap a -> MethodMap a
 fallbackMethodHEADtoGET = MonoidMap . fallback HEAD GET . monoidMap
 
 fallbackDefaultMethodHEADtoGET :: DefaultMap MethodMap a -> DefaultMap MethodMap a
-fallbackDefaultMethodHEADtoGET (DefaultMap m d) = DefaultMap (fallbackMethodHEADtoGET m) d
+fallbackDefaultMethodHEADtoGET = withDefaultMap fallbackMethodHEADtoGET
 
 orKeys :: MethodMap a -> Maybe a -> Either [Method] a
 orKeys (MonoidMap m) = maybe (Left $ M.keys m) Right

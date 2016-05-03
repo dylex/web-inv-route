@@ -20,9 +20,11 @@ library
     Web.Route.Invertible.Placeholder
     Web.Route.Invertible.Sequence
     Web.Route.Invertible.Path
+    Web.Route.Invertible.Host
     Web.Route.Invertible.Method
     Web.Route.Invertible.Route
     Web.Route.Invertible.Request
+    Web.Route.Invertible.Type
     Web.Route.Invertible.Monoid.Exactly
     Web.Route.Invertible.Monoid.Prioritized
     Web.Route.Invertible.Map
@@ -32,6 +34,8 @@ library
     Web.Route.Invertible.Map.ParameterType
     Web.Route.Invertible.Map.Placeholder
     Web.Route.Invertible.Map.Sequence
+    Web.Route.Invertible.Map.Path
+    Web.Route.Invertible.Map.Host
     Web.Route.Invertible.Map.Method
     Web.Route.Invertible.Map.Route
 

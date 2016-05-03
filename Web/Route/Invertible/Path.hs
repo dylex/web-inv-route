@@ -5,30 +5,40 @@
 --
 -- > Path ("item" *< parameter) :: Path Int
 --
+{-# LANGUAGE GeneralizedNewtypeDeriving, StandaloneDeriving, FlexibleInstances, FlexibleContexts #-}
 module Web.Route.Invertible.Path
   ( PathString
-  , Path(..)
   , normalizePath
+  , Path(..)
   , urlPathBuilder
   ) where
 
 import Prelude hiding (lookup)
 
+import Control.Invertible.Monoidal
 import qualified Data.ByteString.Builder as B
 import Data.Monoid ((<>))
+import qualified Data.Invertible as I
+import Data.String (IsString(..))
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import qualified Network.HTTP.Types.URI as H
 
+import Web.Route.Invertible.Parameter
 import Web.Route.Invertible.Sequence
 
 type PathString = T.Text
 
-newtype Path a = Path { pathSequence :: Sequence PathString a }
-
 -- |Remove double- and trailing-slashes (i.e., empty path segments).
 normalizePath :: [PathString] -> [PathString]
 normalizePath = filter (not . T.null)
+
+-- |A URL path parser/generator, providing the same functionality as 'Sequence'.
+-- Note that the individual components are /decoded/ path segments, so a literal slash in a component (e.g., as produced with 'fromString') will match \"%2F\".
+newtype Path a = Path { pathSequence :: Sequence PathString a }
+  deriving (I.Functor, Monoidal, MonoidalAlt, Parameterized PathString)
+
+deriving instance IsString (Path ())
 
 -- |Build a 'Path' as applied to a value into a bytestring 'B.Builder' by encoding the segments with 'urlEncodePath' and joining them with \"/\".
 urlPathBuilder :: Path a -> a -> B.Builder
