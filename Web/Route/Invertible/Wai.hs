@@ -16,6 +16,7 @@ import Web.Route.Invertible.Map.Route
 waiRequest :: Wai.Request -> Request
 waiRequest q = Request
   { requestHost = maybe [] splitHost $ Wai.requestHeaderHost q
+  , requestSecure = Wai.isSecure q
   , requestMethod = toMethod $ Wai.requestMethod q
   , requestPath = Wai.pathInfo q
   }

@@ -27,6 +27,7 @@ import Web.Route.Invertible.Route
 import Web.Route.Invertible.Request
 import Web.Route.Invertible.Map.Monoid
 import Web.Route.Invertible.Map.Default
+import Web.Route.Invertible.Map.Bool
 import Web.Route.Invertible.Map.Sequence
 import Web.Route.Invertible.Map.Path
 import Web.Route.Invertible.Map.Host
@@ -35,17 +36,17 @@ import Web.Route.Invertible.Monoid.Exactly
 import Web.Route.Invertible.Monoid.Prioritized
 import Web.Route.Invertible.Type
 
-newtype RouteMap a = RouteMap { routeMap :: DefaultMap HostMap (DefaultMap PathMap (DefaultMap MethodMap (Prioritized (Exactly (HostPlaceholderValue -> PathPlaceholderValue -> a))))) }
+newtype RouteMap a = RouteMap { routeMap :: DefaultMap HostMap (BoolMap (DefaultMap PathMap (DefaultMap MethodMap (Prioritized (Exactly (HostPlaceholderValue -> PathPlaceholderValue -> a)))))) }
   deriving (Monoid)
 
 instance Functor RouteMap where
-  fmap f = RouteMap . (fmap . fmap . fmap . fmap . fmap . fmap . fmap) f . routeMap
+  fmap f = RouteMap . (fmap . fmap . fmap . fmap . fmap . fmap . fmap . fmap) f . routeMap
 
 type RouteCase = RouteMap
 
-hostCase :: TMaybe Host h -> (DefaultMap PathMap (DefaultMap MethodMap (Prioritized (Exactly (FromMaybeUnit h -> PathPlaceholderValue -> a))))) -> DefaultMap HostMap (DefaultMap PathMap (DefaultMap MethodMap (Prioritized (Exactly (HostPlaceholderValue -> PathPlaceholderValue -> a)))))
-hostCase TNothing m = defaultingValue $ (fmap . fmap . fmap . fmap) (\f _ -> f ()) m
-hostCase (TJust (HostRev s)) m = defaultingMap $ (\f -> (fmap . fmap . fmap . fmap) (. f) m) <$> singletonSequence s
+hostCase :: TMaybe Host h -> (BoolMap (DefaultMap PathMap (DefaultMap MethodMap (Prioritized (Exactly (FromMaybeUnit h -> PathPlaceholderValue -> a)))))) -> DefaultMap HostMap (BoolMap (DefaultMap PathMap (DefaultMap MethodMap (Prioritized (Exactly (HostPlaceholderValue -> PathPlaceholderValue -> a))))))
+hostCase TNothing m = defaultingValue $ (fmap . fmap . fmap . fmap . fmap) (\f _ -> f ()) m
+hostCase (TJust (HostRev s)) m = defaultingMap $ (\f -> (fmap . fmap . fmap . fmap . fmap) (. f) m) <$> singletonSequence s
 
 pathCase :: TMaybe Path p -> (DefaultMap MethodMap (Prioritized (Exactly (h -> FromMaybeUnit p -> a)))) -> DefaultMap PathMap (DefaultMap MethodMap (Prioritized (Exactly (h -> PathPlaceholderValue -> a))))
 pathCase TNothing m = defaultingValue $ (fmap . fmap . fmap) (\f h _ -> f h ()) m
@@ -54,6 +55,7 @@ pathCase (TJust (Path s)) m = defaultingMap $ (\f -> (fmap . fmap . fmap) (\g h 
 routeCase :: Route h m p a -> RouteCase a
 routeCase Route{..} = RouteMap $
   hostCase routeHost $
+  singletonBool routeSecure $
   pathCase routePath $
   when defaultingValue (((defaultingMap . MonoidMap) .) . Map.singleton) routeMethod $
   Prioritized routePriority $
@@ -63,7 +65,7 @@ routes :: [RouteCase a] -> RouteMap a
 routes = mconcat
 
 fallbackHEADtoGET :: RouteMap a -> RouteMap a
-fallbackHEADtoGET = RouteMap . (fmap . fmap) fallbackDefaultMethodHEADtoGET . routeMap
+fallbackHEADtoGET = RouteMap . (fmap . fmap . fmap) fallbackDefaultMethodHEADtoGET . routeMap
 
 lookupDefaultSequence :: RouteString s => [s] -> DefaultMap (SequenceMap s) a -> [(SequencePlaceholderValue, a)]
 lookupDefaultSequence k (DefaultMap m d) = case lookupSequence k m of
@@ -79,7 +81,8 @@ routeRequest :: Request -> RouteMap a -> Either (Status, ResponseHeaders) a
 routeRequest q@Request{..} (RouteMap hm) =
   either method (exactly . prioritized) $
   mergeRight $ do
-    (h, pm) <- lookupDefaultSequence requestHost hm
+    (h, bm) <- lookupDefaultSequence requestHost hm
+    pm <- maybeToList $ lookupBool requestSecure bm
     (p, mm) <- lookupDefaultSequence requestPath pm
     return $ (fmap . fmap) (\f -> f h p) <$> lookupDefaultMethod requestMethod mm
   where

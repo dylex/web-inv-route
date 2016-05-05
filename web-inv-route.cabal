@@ -31,6 +31,7 @@ library
     Web.Route.Invertible.Map.Monoid
     Web.Route.Invertible.Map.Default
     Web.Route.Invertible.Map.Const
+    Web.Route.Invertible.Map.Bool
     Web.Route.Invertible.Map.ParameterType
     Web.Route.Invertible.Map.Placeholder
     Web.Route.Invertible.Map.Sequence
