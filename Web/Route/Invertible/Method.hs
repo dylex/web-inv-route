@@ -30,6 +30,9 @@ data Method
 class IsMethod m where
   toMethod :: m -> Method
 
+instance IsMethod Method where
+  toMethod = id
+
 instance IsMethod H.StdMethod where
   toMethod H.GET = GET
   toMethod H.POST = POST
