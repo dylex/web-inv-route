@@ -1,3 +1,4 @@
+-- |Representation of HTTP requests.
 module Web.Route.Invertible.Request
   ( Request(..)
   , blankRequest

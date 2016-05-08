@@ -2,7 +2,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 module Web.Route.Invertible.String
   ( RouteString(..)
-  , PathString
   ) where
 
 import qualified Data.ByteString.Char8 as BS
@@ -21,5 +20,3 @@ instance RouteString T.Text where
   toString = T.unpack
 instance RouteString BS.ByteString where
   toString = BS.unpack
-
-type PathString = T.Text

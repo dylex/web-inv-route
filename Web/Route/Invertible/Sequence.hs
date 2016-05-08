@@ -63,7 +63,7 @@ instance Parameterized s (Sequence s) where
 instance IsString s => IsString (Sequence s ()) where
   fromString = SequencePlaceholder . fromString
 
--- |Ignore an arbitrary sequence tail of parameters, always generating the same thing.
+-- |Ignore an arbitrary sequence of parameters (usually as a tail), always generating the same thing.
 wildcard :: (Parameterized s f, MonoidalAlt f, Parameter s a) => [a] -> f ()
 wildcard d = d >$ manyI parameter
 

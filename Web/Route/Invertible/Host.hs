@@ -1,5 +1,5 @@
 -- |
--- Domainname parsers.
+-- Domainname parsers (specialization of "Web.Route.Invertible.Sequence").
 -- These can be used for virtual hosting or otherwise matching on hostnames.
 {-# LANGUAGE GeneralizedNewtypeDeriving, StandaloneDeriving, FlexibleInstances, FlexibleContexts #-}
 module Web.Route.Invertible.Host

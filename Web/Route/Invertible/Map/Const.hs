@@ -7,6 +7,7 @@ module Web.Route.Invertible.Map.Const
   , constantValue
   , lookupConst
   , flattenConstMap
+  , ConstDefaultMap
   , flattenConstDefaultMap
   ) where
 

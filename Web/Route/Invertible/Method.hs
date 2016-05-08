@@ -1,3 +1,4 @@
+-- |Representation of HTTP request methods.
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, OverloadedStrings #-}
 module Web.Route.Invertible.Method
   ( Method(..)
@@ -12,7 +13,7 @@ import qualified Network.HTTP.Types.Method as H
 import Web.Route.Invertible.Parameter
 
 -- |Standard HTTP methods.
--- These are defined a number of places already, but http-types version (which is the only thing we import by default) is too cumbersome.
+-- These are defined a number of places already, but the http-types version (which is the only thing we import by default) is too cumbersome.
 data Method
   = OPTIONS
   | GET

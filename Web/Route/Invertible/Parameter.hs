@@ -25,12 +25,16 @@ import Text.Read (readMaybe)
 import Web.Route.Invertible.String
 
 -- |A parameter value @a@ that can be parsed from or rendered into string data @s@.
--- @parseParameter@ must inverse @renderParameter@:
+-- @parseParameter@ must invert @renderParameter@:
 --
 --   * @parseParameter . renderParameter == Just@
 --   
 class (RouteString s, Typeable a) => Parameter s a where
+  -- |Parse string data into a value.
+  -- Often equivalent (and defaults) to 'readMaybe'.
   parseParameter :: s -> Maybe a
+  -- |Render a value into a string.
+  -- Often equivalent (and defaults) to 'show'.
   renderParameter :: a -> s
 
   default parseParameter :: Read a => s -> Maybe a
@@ -84,7 +88,9 @@ instance RouteString s => Parameter s Void where
   renderParameter = absurd
 
 
+-- |Parsers 'p' that operate over string data 's', and so can parse placeholder 'Parameter' values.
 class Parameterized s p | p -> s where
+  -- |Create a parser for a parameter of type 'a'.
   parameter :: Parameter s a => p a
 
 -- |Create a placeholder 'parameter' with the type of the argument, which is ignored.

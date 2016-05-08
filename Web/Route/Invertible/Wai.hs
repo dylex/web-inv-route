@@ -12,6 +12,7 @@ import Web.Route.Invertible.Host
 import Web.Route.Invertible.Method
 import Web.Route.Invertible.Request
 import Web.Route.Invertible.Map.Route
+import Web.Route.Invertible
 
 waiRequest :: Wai.Request -> Request
 waiRequest q = Request

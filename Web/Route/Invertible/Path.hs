@@ -1,5 +1,5 @@
 -- |
--- Single-route path parsers.
+-- Single-route path parsers (specialization of "Web.Route.Invertible.Sequence").
 -- The most important type here is 'Path', which can be used to represent a single path endpoint within your application, including placeholders.
 -- For example, the following represents a path of @\/item\/$id@ where @$id@ is an integer placeholder:
 --
@@ -27,6 +27,8 @@ import qualified Network.HTTP.Types.URI as H
 import Web.Route.Invertible.Parameter
 import Web.Route.Invertible.Sequence
 
+-- |A component of a path, such that paths are represented by @['PathString']@ (after splitting on \'/\').
+-- Paths can be created by 'H.decodePath'.
 type PathString = T.Text
 
 -- |Remove double- and trailing-slashes (i.e., empty path segments).
