@@ -1,3 +1,5 @@
+-- |
+-- A monoid that only admits a single value.
 module Web.Route.Invertible.Monoid.Exactly
   ( Exactly(..)
   , maybeToExactly

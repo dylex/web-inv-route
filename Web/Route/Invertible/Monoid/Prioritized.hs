@@ -1,3 +1,5 @@
+-- |
+-- A monoid that combines according to priorities, allowing some values to take precedence over others.
 module Web.Route.Invertible.Monoid.Prioritized
   ( Prioritized(..)
   ) where
@@ -12,6 +14,7 @@ data Prioritized a = Prioritized
 
 instance Functor Prioritized where
   fmap f (Prioritized p x) = Prioritized p (f x)
+
 -- |Combining two values with the same priority combines the values, otherwise it discards the value with a smaller priority.
 instance Monoid a => Monoid (Prioritized a) where
   mempty = Prioritized minBound mempty
