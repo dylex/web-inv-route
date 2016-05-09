@@ -1,7 +1,10 @@
 name:                web-inv-route
 version:             0
 synopsis:            Composable, reversible, efficient web routing based on invertible invariants and bijections
-description:         Utilities to route HTTP requests, mainly focused on path components.  Routes are specified using bijections and invariant functors, allowing run-time composition (routes can be distributed across modules), reverse and forward routing derived from the same specification, and O(log n) lookups.
+description:
+  Utilities to route HTTP requests, mainly focused on path components.  Routes are specified using bijections and invariant functors, allowing run-time composition (routes can be distributed across modules), reverse and forward routing derived from the same specification, and O(log n) lookups.
+  .
+  Most users will want to import only "Web.Route.Invertible.Wai" (or the generic "Web.Route.Invertible") depending on their framework to get full access to all routing functionality.
 license:             BSD3
 author:              Dylan Simon
 maintainer:          dylan@dylex.net
@@ -13,8 +16,12 @@ cabal-version:       >=1.20
 flag wai
   description: Provide wai-compatible interfaces
 
+flag uri
+  description: Support constructing URIs from routes
+
 library
   exposed-modules:     
+    Web.Route.Invertible
     Web.Route.Invertible.String
     Web.Route.Invertible.Parameter
     Web.Route.Invertible.Placeholder
@@ -56,4 +63,8 @@ library
   if flag(wai)
     exposed-modules: Web.Route.Invertible.Wai
     build-depends: wai >= 1
+
+  if flag(uri)
+    exposed-modules: Web.Route.Invertible.URI
+    build-depends: network-uri
 

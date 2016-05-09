@@ -10,6 +10,7 @@ module Web.Route.Invertible.Type
   , MaybeFunction
   , tmaybeFunction
   , tmaybeApply
+  , tmaybeMapFunction
   , When(..)
   , when
   ) where
@@ -52,6 +53,11 @@ tmaybeFunction (TJust _) f = f
 tmaybeApply :: TMaybe m a -> MaybeFunction a b -> FromMaybeVoid a -> b
 tmaybeApply TNothing f _ = f
 tmaybeApply (TJust _) f a = f a
+
+-- |Map over the result of a MaybeFunction.
+tmaybeMapFunction :: TMaybe m a -> (b -> c) -> MaybeFunction a b -> MaybeFunction a c
+tmaybeMapFunction TNothing f x = f x
+tmaybeMapFunction (TJust _) f g = f . g
 
 -- |A value guarded by a type-level Bool, creating a typed Maybe.
 data When (t :: Bool) a where

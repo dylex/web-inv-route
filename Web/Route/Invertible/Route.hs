@@ -3,6 +3,8 @@
 {-# LANGUAGE FlexibleInstances, DataKinds, KindSignatures, RecordWildCards, MultiParamTypeClasses, FunctionalDependencies, TypeFamilies #-}
 module Web.Route.Invertible.Route
   ( Route(..)
+  , RouteFunction
+  , mapRouteFunction
   , BasicRoute
   , PathRoute
   , HostRoute
@@ -28,6 +30,24 @@ import Web.Route.Invertible.Path
 import Web.Route.Invertible.Request
 import Web.Route.Invertible.Type
 
+-- |A function that takes (optional) arguments for host and path parameters.
+type ParamFunction h p a = MaybeFunction h (MaybeFunction p a)
+
+-- |A route function that also takes (optional) arguments for host and path parameters if the route includes them.
+type RouteFunction h p a b = Route h p a -> ParamFunction h p b
+
+-- |Convert a route function to its expanded void-argument version.
+_unRouteFunction :: RouteFunction h p x a -> Route h p x -> FromMaybeVoid h -> FromMaybeVoid p -> a
+_unRouteFunction f r = tmaybeApply (routePath r) . tmaybeApply (routeHost r) (f r)
+
+-- |Convert a normal function with possibly void arguments into a route function.
+routeFunction :: (Route h p x -> FromMaybeVoid h -> FromMaybeVoid p -> a) -> RouteFunction h p x a
+routeFunction f r = tmaybeFunction (routeHost r) $ tmaybeFunction (routePath r) . f r
+
+-- |Map over the output of a route function.
+mapRouteFunction :: (a -> b) -> RouteFunction h p x a -> RouteFunction h p x b
+mapRouteFunction f g r = tmaybeMapFunction (routeHost r) (tmaybeMapFunction (routePath r) f) $ g r
+
 -- |A single routing endpoint, representing the subset of requests handled and resulting action this route evaluates to.
 -- Routes should usually be assigned to (top-level) variables using 'route', the various @forX@ functions, and finally `action`, e.g.:
 --
@@ -36,12 +56,12 @@ import Web.Route.Invertible.Type
 --
 -- Routes are matched in the order of the fields, so that a default path matches only once the host is matched, but a default host matches regardless of path (but of course ultimately all qualifiations must match for the route to apply).
 data Route (h :: Maybe *) (p :: Maybe *) a = Route
-  { routeHost :: !(TMaybe Host h)
-  , routeSecure :: !(Maybe Bool)
-  , routePath :: !(TMaybe Path p)
-  , routeMethod :: ![Method]
-  , routePriority :: !Int
-  , routeAction :: FromMaybeVoid h -> FromMaybeVoid p -> a
+  { routeHost :: !(TMaybe Host h) -- ^Optional host parser (default to any unhandled host)
+  , routeSecure :: !(Maybe Bool) -- ^Optional secure filter (default to both)
+  , routePath :: !(TMaybe Path p) -- ^Optional apth parser (default to any unhandled path)
+  , routeMethod :: ![Method] -- ^Methods handled (default to all)
+  , routePriority :: !Int -- ^Priority of this route (for "Web.Route.Invertible.Monoid.Prioritized")
+  , routeAction :: FromMaybeVoid h -> FromMaybeVoid p -> a -- ^The resulting action
   }
 
 instance Functor (Route h p) where
@@ -99,7 +119,7 @@ withPriority r p = r{ routePriority = p }
 
 -- |Specify the associated result or action to take when a route matches.
 -- The function will be called with the parsed host and path values (if any), and the result will be returned (as 'Web.Route.Invertible.Result.RouteResult').
-action :: Route h p Void -> MaybeFunction h (MaybeFunction p a) -> Route h p a
+action :: Route h p Void -> ParamFunction h p a -> Route h p a
 action Route{ .. } f =
   Route{ routeAction = tmaybeApply routePath . tmaybeApply routeHost f, .. }
 
@@ -115,12 +135,13 @@ requestRoute_ Route{..} h p Request{..} = Request
 -- It takes arguments for the components of the route (e.g., host, path), and modifies the request, only if those components are specified.  That is:
 --
 -- > requestRoute' 'route' == id
-requestRoute' :: Route h p a -> MaybeFunction h (MaybeFunction p (Request -> Request))
-requestRoute' r = tmaybeFunction (routeHost r) $ \h -> tmaybeFunction (routePath r) $ \p -> requestRoute_ r h p
+requestRoute' :: RouteFunction h p a (Request -> Request)
+requestRoute' = routeFunction requestRoute_
 
 -- |Apply 'requestRoute'' to 'blankRequest'.
 -- This performs reverse routing: it gives you a filled-out request based on a single route endpoint and its parameters.
-requestRoute :: Route h p a -> MaybeFunction h (MaybeFunction p Request)
-requestRoute r = tmaybeFunction (routeHost r) $ \h -> tmaybeFunction (routePath r) $ \p -> requestRoute_ r h p blankRequest
+requestRoute :: RouteFunction h p a Request
+-- requestRoute = mapRouteFunction ($ blankRequest) requestRoute'
+requestRoute = routeFunction $ \r h p -> requestRoute_ r h p blankRequest
 
 infixl 0 `forHost`, `forSecure`, `forPath`, `forMethod`, `withPriority`, `action`

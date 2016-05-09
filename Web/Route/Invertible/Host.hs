@@ -5,6 +5,7 @@
 module Web.Route.Invertible.Host
   ( HostString
   , splitHost
+  , joinHost
   , Host(..)
   , renderHost
   ) where
@@ -27,6 +28,10 @@ type HostString = BS.ByteString
 splitHost :: BS.ByteString -> [HostString]
 splitHost = reverse . BSC.split '.'
 
+-- |Reverse and join a hostname with \".\".
+joinHost :: [HostString] -> BS.ByteString
+joinHost = BS.intercalate (BSC.singleton '.') . reverse
+
 -- |A hostname matcher, providing the same functionality as 'Sequence'.
 -- This matches hostnames in reverse order (from TLD down), but the 'Monoidal' instance and 'splitHost' automatically deal with this for you.
 newtype Host a = HostRev { hostSequence :: Sequence HostString a }
@@ -42,4 +47,4 @@ instance IsString (Host ()) where
 
 -- |Instantiate a host with a value and render it as a domainname.
 renderHost :: Host a -> a -> BS.ByteString
-renderHost (HostRev p) a = BS.intercalate (BSC.singleton '.') $ reverse $ renderSequence p a
+renderHost (HostRev p) a = joinHost $ renderSequence p a

@@ -1,5 +1,6 @@
 module Web.Route.Invertible.Wai
-  ( routeWai
+  ( module Web.Route.Invertible
+  , routeWai
   , routeWaiApplicationError
   , routeWaiApplication
   ) where
@@ -11,8 +12,7 @@ import Network.HTTP.Types.Status (Status)
 import Web.Route.Invertible.Host
 import Web.Route.Invertible.Method
 import Web.Route.Invertible.Request
-import Web.Route.Invertible.Map.Route
-import Web.Route.Invertible
+import Web.Route.Invertible hiding (Request, Method)
 
 waiRequest :: Wai.Request -> Request
 waiRequest q = Request
