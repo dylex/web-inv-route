@@ -10,4 +10,4 @@ import Web.Route.Invertible.Result
 import Web.Route.Invertible.Map.Route
 
 routeRequest :: Request -> RouteMap a -> Either (Status, ResponseHeaders) a
-routeRequest q = routeResult q . lookupRoute q
+routeRequest q = routeResult . lookupRoute q

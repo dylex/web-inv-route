@@ -1,4 +1,4 @@
--- |Representation of route table lookups.
+-- |Results of route table lookups.
 module Web.Route.Invertible.Result
   ( RouteResult(..)
   , routeResult
@@ -7,16 +7,17 @@ module Web.Route.Invertible.Result
 import qualified Data.ByteString.Char8 as BSC
 import Data.Typeable (Typeable)
 import Network.HTTP.Types.Header (ResponseHeaders, hAllow)
-import Network.HTTP.Types.Status (Status, notFound404, methodNotAllowed405)
+import Network.HTTP.Types.Status (Status, notFound404, methodNotAllowed405, internalServerError500)
 
 import Web.Route.Invertible.Parameter
 import Web.Route.Invertible.Method
 
+-- |The result of looking up a request in a routing map.
 data RouteResult a
-  = RouteNotFound
-  | AllowedMethods [Method]
-  | RouteResult a
-  | MultipleRoutes
+  = RouteNotFound -- ^No route was found to handle this request: 404
+  | AllowedMethods [Method] -- ^No route was found to handle this request, but there are routes for other methods: 405
+  | RouteResult a -- ^A route was found to handle this request
+  | MultipleRoutes -- ^Multiple (conflicting) routes were found to handle this request: 500
   deriving (Eq, Show, Typeable)
 
 instance Functor RouteResult where
@@ -43,8 +44,10 @@ unionSorted al@(a:ar) bl@(b:br) = case compare a b of
 unionSorted [] l = l
 unionSorted l [] = l
 
-routeResult :: Show q => q -> RouteResult a -> Either (Status, ResponseHeaders) a
-routeResult _ RouteNotFound = Left (notFound404, [])
-routeResult _ (AllowedMethods m) = Left (methodNotAllowed405, [(hAllow, BSC.intercalate (BSC.singleton ',') $ map renderParameter m)])
-routeResult _ (RouteResult a) = Right a
-routeResult q MultipleRoutes = Left $ error $ "Conflict routing " ++ show q
+-- |Convert a result to an appropriate HTTP status and headers.
+-- It is up to the user to provide an appropriate body (if any).
+routeResult :: RouteResult a -> Either (Status, ResponseHeaders) a
+routeResult RouteNotFound = Left (notFound404, [])
+routeResult (AllowedMethods m) = Left (methodNotAllowed405, [(hAllow, BSC.intercalate (BSC.singleton ',') $ map renderParameter m)])
+routeResult (RouteResult a) = Right a
+routeResult MultipleRoutes = Left (internalServerError500, [])
