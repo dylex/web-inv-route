@@ -23,6 +23,9 @@ flag wai
 flag uri
   description: Support constructing URIs from routes
 
+flag h
+  description: Support heterogeneous, ordered routes using HList
+
 library
   exposed-modules:     
     Web.Route.Invertible
@@ -71,6 +74,11 @@ library
   if flag(uri)
     exposed-modules: Web.Route.Invertible.URI
     build-depends: network-uri
+
+  if flag(h)
+    exposed-modules: Web.Route.Invertible.HRoute
+    exposed-modules: Web.Route.Invertible.Map.HRoute
+    build-depends: HList == 0.4.*
 
 test-suite tests
   type: exitcode-stdio-1.0
