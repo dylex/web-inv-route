@@ -16,9 +16,9 @@ data Request = Request
   , requestHost :: [HostString]
   , requestMethod :: Method
   , requestPath :: [PathString]
-  } deriving (Show)
+  } deriving (Show, Eq)
 
--- |A blank/unknown request; essentially the default value
+-- |A blank/unknown request; effectively the default value
 blankRequest :: Request
 blankRequest = Request
   { requestSecure = False
