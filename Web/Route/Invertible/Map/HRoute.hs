@@ -5,7 +5,6 @@ module Web.Route.Invertible.Map.HRoute
   ) where
 
 import Control.Arrow (first)
-import Data.HList.HList (HList(..))
 import qualified Data.Map.Strict as Map
 
 import Web.Route.Invertible.Host
@@ -25,13 +24,13 @@ collectMethods (RouteMethod r m) = first (m :) $ collectMethods r
 collectMethods r = ([], r)
 
 routeCase :: Action l a -> RouteCase a
-routeCase (Action Route                     a) = RouteMapExactly $ Exactly $ a HNil
+routeCase (Action Route                     a) = RouteMapExactly $ Exactly a
 routeCase (Action (RouteHost r (HostRev s)) a) = RouteMapHost $ defaultingMap $ (\g -> fmap (. g) c) <$> singletonSequence s where
-  c = routeCase $ Action r $ \l p -> a $ HCons p l
+  c = routeCase $ Action r a
 routeCase (Action (RouteSecure r s)         a) = RouteMapSecure $ singletonBool (Just s)
     $ routeCase $ Action r a
 routeCase (Action (RoutePath r (Path s))    a) = RouteMapPath $ defaultingMap $ (\g -> fmap (. g) c) <$> singletonSequence s where
-  c = routeCase $ Action r $ \l p -> a $ HCons p l
+  c = routeCase $ Action r a
 routeCase (Action (RouteMethod r m)         a) = RouteMapMethod $ defaultingMap $ MonoidMap $ Map.fromList $ map (, c) (m:ml) where
   (ml, r') = collectMethods r
   c = routeCase $ Action r' a

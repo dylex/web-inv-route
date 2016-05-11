@@ -37,6 +37,7 @@ library
     Web.Route.Invertible.Host
     Web.Route.Invertible.Method
     Web.Route.Invertible.Route
+    Web.Route.Invertible.HRoute
     Web.Route.Invertible.Request
     Web.Route.Invertible.Type
     Web.Route.Invertible.Result
@@ -54,6 +55,7 @@ library
     Web.Route.Invertible.Map.Host
     Web.Route.Invertible.Map.Method
     Web.Route.Invertible.Map.Route
+    Web.Route.Invertible.Map.HRoute
 
   build-depends:       
     base >= 4.8 && <5,
@@ -74,11 +76,6 @@ library
   if flag(uri)
     exposed-modules: Web.Route.Invertible.URI
     build-depends: network-uri
-
-  if flag(h)
-    exposed-modules: Web.Route.Invertible.HRoute
-    exposed-modules: Web.Route.Invertible.Map.HRoute
-    build-depends: HList == 0.4.*
 
 test-suite tests
   type: exitcode-stdio-1.0
