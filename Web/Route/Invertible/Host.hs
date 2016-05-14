@@ -38,12 +38,12 @@ newtype Host a = HostRev { hostSequence :: Sequence HostString a }
   deriving (I.Functor, MonoidalAlt, Parameterized HostString)
 
 instance Monoidal Host where
-  unit = HostRev SequenceEmpty
-  HostRev p >*< HostRev q = HostRev $ SequenceTransform I.swap $ SequenceJoin q p
+  unit = HostRev unit
+  HostRev p >*< HostRev q = I.swap >$< HostRev (q >*< p)
 
 -- |Since domain components cannot contain \".\", @"foo.com"@ is equivalent to @"foo" *< "com"@ (unlike other 'Sequence's).
 instance IsString (Host ()) where
-  fromString s = HostRev $ mapI_ (SequencePlaceholder . PlaceholderFixed) $ splitHost $ fromString s
+  fromString s = HostRev $ mapI_ (placeholderSequence . PlaceholderFixed) $ splitHost $ fromString s
 
 -- |Instantiate a host with a value and render it as a domainname.
 renderHost :: Host a -> a -> BS.ByteString

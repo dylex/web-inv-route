@@ -1,6 +1,6 @@
 -- |
 -- Type-level families and GADTs, mainly around 'Maybe'.
-{-# LANGUAGE GADTs, DataKinds, TypeFamilies, TypeOperators, UndecidableInstances #-}
+{-# LANGUAGE GADTs, DataKinds, TypeFamilies, TypeOperators #-}
 module Web.Route.Invertible.Type
   ( FromMaybe
   , FromMaybeVoid
@@ -14,7 +14,6 @@ module Web.Route.Invertible.Type
   , When(..)
   , when
   , Functions
-  , FunctionsRev
   ) where
 
 import Data.Void (Void)
@@ -78,7 +77,3 @@ when _ f (WhenSo a) = f a
 type family Functions (a :: [*]) b where
   Functions '[] b = b
   Functions (a ': l) b = a -> Functions l b
-
-type family FunctionsRev (a :: [*]) b where
-  FunctionsRev '[] b = b
-  FunctionsRev (a ': l) b = FunctionsRev l (a -> b)

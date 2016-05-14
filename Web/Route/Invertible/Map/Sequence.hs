@@ -30,6 +30,7 @@ import Prelude hiding (lookup)
 
 import Control.Applicative ((<|>))
 import Control.Arrow (first, (&&&))
+import Control.Invertible.Monoidal.Free
 import Control.Monad (mzero)
 import Data.Dynamic (Dynamic, fromDyn)
 import qualified Data.Invertible as I
@@ -69,21 +70,24 @@ placeholderValue :: Placeholder s a -> SequencePlaceholderValue -> a
 placeholderValue (PlaceholderFixed _) _ = ()
 placeholderValue PlaceholderParameter ~(x:_) = fromDyn x (error "SequenceMap: type error")
 
-singletonSequence :: RouteString s => Sequence s a -> SequenceMap s (SequencePlaceholderValue -> a)
-singletonSequence SequenceEmpty = leaf $ Just $ const ()
-singletonSequence (SequencePlaceholder p) =
+singletonFree :: RouteString s => Free (Placeholder s) a -> SequenceMap s (SequencePlaceholderValue -> a)
+singletonFree Empty = leaf $ Just $ const ()
+singletonFree (Free p) =
   SequenceMap (singletonPlaceholder p $ leaf $ Just $ placeholderValue p) Nothing
-singletonSequence (SequenceTransform f m) = fmap (I.biTo f) <$> singletonSequence m
-singletonSequence (SequenceJoin p q) = jq 0 $ singletonSequence p where
-  q' = singletonSequence q
+singletonFree (Transform f m) = fmap (I.biTo f) <$> singletonFree m
+singletonFree (Join p q) = jq 0 $ singletonFree p where
+  q' = singletonFree q
   jq i (SequenceMap m Nothing) = jm i m
   jq i (SequenceMap m (Just v)) = (mv i v <$> q') `union` jm i m
   jm i (PlaceholderMap s t) =
     SequenceMap (PlaceholderMap (jq i <$> s) (jq (succ i) <$> t)) Nothing
   mv i v o = v &&& o . drop i
-singletonSequence (SequenceChoose p q) =
-  (fmap Left  <$> singletonSequence p) `union`
-  (fmap Right <$> singletonSequence q)
+singletonFree (Choose p q) =
+  (fmap Left  <$> singletonFree p) `union`
+  (fmap Right <$> singletonFree q)
+
+singletonSequence :: RouteString s => Sequence s a -> SequenceMap s (SequencePlaceholderValue -> a)
+singletonSequence = singletonFree . freeSequence
 
 lookupSequence :: RouteString s => [s] -> SequenceMap s a -> [(SequencePlaceholderValue, a)]
 lookupSequence (s:l) (SequenceMap m _) =
