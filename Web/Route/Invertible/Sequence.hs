@@ -4,8 +4,9 @@
 --
 -- >>> :set -XOverloadedStrings
 -- >>> import Control.Invertible.Monoidal
+-- >>> import Web.Route.Invertible.Parameter
 -- >>> let p = "item" *< parameter :: Sequence String Int
--- >>> parseSequence p $ map T.pack ["item", "123"]
+-- >>> parseSequence p ["item", "123"]
 -- 123
 -- >>> renderSequence p 123
 -- ["item","123"]
@@ -26,7 +27,6 @@ module Web.Route.Invertible.Sequence
 import Control.Invertible.Monoidal
 import Control.Invertible.Monoidal.Free
 import Control.Monad (MonadPlus, mzero, guard)
-import Control.Monad.Trans.State (runStateT)
 import qualified Data.Invertible as I
 import Data.String (IsString(..))
 
@@ -58,7 +58,7 @@ wildcard d = d >$ manyI parameter
 
 -- |Realize a 'Sequence' as instantiated by a value to a sequence of 'PlaceholderValue's.
 sequenceValues :: Sequence s a -> a -> [PlaceholderValue s]
-sequenceValues = produceList f . freeSequence where
+sequenceValues = produceFree f . freeSequence where
   f :: Placeholder s a' -> a' -> PlaceholderValue s
   f (PlaceholderFixed t) () = PlaceholderValueFixed t
   f PlaceholderParameter a = PlaceholderValueParameter a
@@ -69,7 +69,7 @@ renderSequence p = map renderPlaceholderValue . sequenceValues p
 
 -- |Attempt to parse sequence segments into a value and remaining (unparsed) segments, ala 'reads'.
 readsSequence :: forall m s a . (MonadPlus m, Eq s) => Sequence s a -> [s] -> m (a, [s])
-readsSequence = runStateT . consumeList f . freeSequence where
+readsSequence = parseFree f . freeSequence where
   f :: Placeholder s a' -> s -> m a'
   f (PlaceholderFixed t) a = guard (a == t)
   f PlaceholderParameter a = maybe mzero return (parseParameter a)
@@ -84,4 +84,4 @@ parseSequence p l = do
 -- Since sequences are matched left-to-right, this lets you match them right-to-left.
 -- It probably goes without saying, but this won't work for infinite sequences, such as those produced by 'while'.
 reverseSequence :: Sequence s a -> Sequence s a
-reverseSequence = Sequence . reverseList . freeSequence
+reverseSequence = Sequence . reverseFree . freeSequence

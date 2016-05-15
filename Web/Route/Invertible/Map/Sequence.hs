@@ -5,9 +5,10 @@
 -- 
 -- >>> :set -XOverloadedStrings
 -- >>> import Control.Invertible.Monoidal
+-- >>> import Web.Route.Invertible.Parameter
 -- >>> let p1 = "item" *< parameter :: Sequence String Int
 -- >>> let p2 = "object" *< parameter :: Sequence String String
--- >>> let r = mconcat [singletonSequenceApp p1 [Left], singletonSequenceApp p2 [Right] {- ... -}] :: SequenceMapApp [] (Either Int String)
+-- >>> let r = mconcat [singletonSequenceApp p1 [Left], singletonSequenceApp p2 [Right] {- ... -}] :: SequenceMapApp String [] (Either Int String)
 -- >>> lookupSequenceApp ["object", "foo"] r
 -- [Right "foo"]
 -- >>> lookupSequenceApp ["item", "123"] r
@@ -15,7 +16,7 @@
 -- >>> lookupSequenceApp ["item", "bar"] r
 -- []
 --
-{-# LANGUAGE GADTs, TupleSections, ScopedTypeVariables #-}
+{-# LANGUAGE GADTs, ScopedTypeVariables #-}
 module Web.Route.Invertible.Map.Sequence
   ( SequenceMap(..)
   , SequencePlaceholderValue
@@ -28,12 +29,12 @@ module Web.Route.Invertible.Map.Sequence
 
 import Prelude hiding (lookup)
 
-import Control.Applicative ((<|>))
-import Control.Arrow (first, (&&&))
+import Control.Applicative (Alternative(..))
+import Control.Arrow (first)
 import Control.Invertible.Monoidal.Free
-import Control.Monad (mzero)
+import Control.Monad (MonadPlus(..))
+import Control.Monad.Trans.State (StateT(..), State, evalState)
 import Data.Dynamic (Dynamic, fromDyn)
-import qualified Data.Invertible as I
 
 import Web.Route.Invertible.String
 import Web.Route.Invertible.Placeholder
@@ -46,9 +47,13 @@ data SequenceMap s a = SequenceMap
   , sequenceMapValue :: !(Maybe a)
   }
 
+unionSequenceWith :: RouteString s => (Maybe a -> Maybe a -> Maybe a) -> SequenceMap s a -> SequenceMap s a -> SequenceMap s a
+unionSequenceWith f (SequenceMap m1 v1) (SequenceMap m2 v2) =
+  SequenceMap (unionPlaceholderWith (unionSequenceWith f) m1 m2) (f v1 v2)
+
 -- |Values are combined using 'mappend'.
 instance (RouteString s, Monoid a) => Monoid (SequenceMap s a) where
-  mempty = leaf Nothing
+  mempty = empty
   mappend = unionSequenceWith mappend
 
 instance Functor (SequenceMap s) where
@@ -57,37 +62,56 @@ instance Functor (SequenceMap s) where
 leaf :: Maybe a -> SequenceMap s a
 leaf = SequenceMap emptyPlaceholderMap
 
-unionSequenceWith :: RouteString s => (Maybe a -> Maybe a -> Maybe a) -> SequenceMap s a -> SequenceMap s a -> SequenceMap s a
-unionSequenceWith f (SequenceMap m1 v1) (SequenceMap m2 v2) =
-  SequenceMap (unionPlaceholderWith (unionSequenceWith f) m1 m2) (f v1 v2)
+instance RouteString s => Applicative (SequenceMap s) where
+  pure = leaf . Just
+  SequenceMap fm fv <*> a = maybe id (\f -> (f <$> a <|>)) fv
+    $ SequenceMap ((<*> a) <$> fm) Nothing
+  SequenceMap am Nothing *> b =
+    SequenceMap ((*> b) <$> am) Nothing
+  SequenceMap am (Just _) *> b = b <|>
+    SequenceMap ((*> b) <$> am) Nothing
 
-union :: RouteString s => SequenceMap s a -> SequenceMap s a -> SequenceMap s a
-union = unionSequenceWith (<|>)
+instance RouteString s => Alternative (SequenceMap s) where
+  empty = leaf Nothing
+  (<|>) = unionSequenceWith (<|>)
+
+instance RouteString s => Monad (SequenceMap s) where
+  SequenceMap mm mv >>= f = maybe id ((<|>) . f) mv
+    $ SequenceMap ((>>= f) <$> mm) Nothing
+  (>>) = (*>)
+
+instance RouteString s => MonadPlus (SequenceMap s)
 
 type SequencePlaceholderValue = [Dynamic]
 
-placeholderValue :: Placeholder s a -> SequencePlaceholderValue -> a
-placeholderValue (PlaceholderFixed _) _ = ()
-placeholderValue PlaceholderParameter ~(x:_) = fromDyn x (error "SequenceMap: type error")
+newtype SequenceMapP s a = SequenceMapP { sequenceMapP :: SequenceMap s (State SequencePlaceholderValue a) }
 
-singletonFree :: RouteString s => Free (Placeholder s) a -> SequenceMap s (SequencePlaceholderValue -> a)
-singletonFree Empty = leaf $ Just $ const ()
-singletonFree (Free p) =
-  SequenceMap (singletonPlaceholder p $ leaf $ Just $ placeholderValue p) Nothing
-singletonFree (Transform f m) = fmap (I.biTo f) <$> singletonFree m
-singletonFree (Join p q) = jq 0 $ singletonFree p where
-  q' = singletonFree q
-  jq i (SequenceMap m Nothing) = jm i m
-  jq i (SequenceMap m (Just v)) = (mv i v <$> q') `union` jm i m
-  jm i (PlaceholderMap s t) =
-    SequenceMap (PlaceholderMap (jq i <$> s) (jq (succ i) <$> t)) Nothing
-  mv i v o = v &&& o . drop i
-singletonFree (Choose p q) =
-  (fmap Left  <$> singletonFree p) `union`
-  (fmap Right <$> singletonFree q)
+instance Functor (SequenceMapP s) where
+  fmap f (SequenceMapP m) = SequenceMapP $ fmap (fmap f) m
+
+instance RouteString s => Applicative (SequenceMapP s) where
+  pure = SequenceMapP . pure . pure
+  SequenceMapP f <*> SequenceMapP m = SequenceMapP $ ((<*>) <$> f) <*> m
+  SequenceMapP a  *> SequenceMapP b = SequenceMapP $ ( (*>) <$> a)  *> b
+
+instance RouteString s => Alternative (SequenceMapP s) where
+  empty = SequenceMapP empty
+  SequenceMapP a <|> SequenceMapP b = SequenceMapP $ a <|> b
+
+placeholderState :: Placeholder s a -> State SequencePlaceholderValue a
+placeholderState (PlaceholderFixed _) = pure ()
+placeholderState PlaceholderParameter = StateT $
+  \(~(x:l)) -> return (fromDyn x $ error "SequenceMap: type error", l)
+
+placeholderMap :: RouteString s => Placeholder s a -> SequenceMapP s a
+placeholderMap p = SequenceMapP $
+  SequenceMap (singletonPlaceholder p $ pure $ placeholderState p) Nothing
+
+singletonSequenceP :: RouteString s => Sequence s a -> SequenceMapP s a
+singletonSequenceP = runFree . mapFree placeholderMap . freeSequence
 
 singletonSequence :: RouteString s => Sequence s a -> SequenceMap s (SequencePlaceholderValue -> a)
-singletonSequence = singletonFree . freeSequence
+singletonSequence = fmap evalState . sequenceMapP . singletonSequenceP
 
 lookupSequence :: RouteString s => [s] -> SequenceMap s a -> [(SequencePlaceholderValue, a)]
 lookupSequence (s:l) (SequenceMap m _) =
