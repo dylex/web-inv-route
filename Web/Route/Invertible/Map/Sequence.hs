@@ -25,6 +25,7 @@ module Web.Route.Invertible.Map.Sequence
   , SequenceMapApp
   , singletonSequenceApp
   , lookupSequenceApp
+  , unconsState'
   ) where
 
 import Prelude hiding (lookup)
@@ -98,10 +99,13 @@ instance RouteString s => Alternative (SequenceMapP s) where
   empty = SequenceMapP empty
   SequenceMapP a <|> SequenceMapP b = SequenceMapP $ a <|> b
 
+unconsState' :: State [a] a
+unconsState' = StateT $ \(~(x:l)) -> return (x, l)
+
 placeholderState :: Placeholder s a -> State SequencePlaceholderValue a
 placeholderState (PlaceholderFixed _) = pure ()
-placeholderState PlaceholderParameter = StateT $
-  \(~(x:l)) -> return (fromDyn x $ error "SequenceMap: type error", l)
+placeholderState PlaceholderParameter = 
+  (`fromDyn` error "SequenceMap: type error") <$> unconsState'
 
 placeholderMap :: RouteString s => Placeholder s a -> SequenceMapP s a
 placeholderMap p = SequenceMapP $

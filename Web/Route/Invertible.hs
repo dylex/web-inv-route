@@ -1,16 +1,13 @@
 module Web.Route.Invertible
   ( 
     -- * Route construction
-    PathRoute
-  , HostPathRoute
-  , route
-  , forHost
-  , forSecure
-  , forPath
-  , forMethod
+    routeHost
+  , routeSecure
+  , routePath
+  , routeMethod
   , Method(..)
-  , withPriority
-  , action
+  , routePriority
+  , Action(..)
     -- ** Parser construction
   , module Control.Invertible.Monoidal
   , wildcard

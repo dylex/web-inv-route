@@ -42,5 +42,5 @@ uriGETRequest :: URI -> Request
 uriGETRequest = uriRequest GET
 
 -- |Reverse a route to a URI.
-routeURI :: RouteFunction h p a (Method, URI)
-routeURI = mapRouteFunction (requestMethod &&& requestURI) requestRoute
+routeURI :: Route a -> a -> (Method, URI)
+routeURI r = (requestMethod &&& requestURI) . requestRoute r

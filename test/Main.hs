@@ -10,28 +10,28 @@ import Web.Route.Invertible
 import Web.Route.Invertible.Request
 import Web.Route.Invertible.Map.Route
 
-getThing :: PathRoute Int String
-getThing = route `forMethod` GET `forPath` "thing" *< parameter `action` \i ->
+getThing :: Action Int String
+getThing = routePath ("thing" *< parameter) >* routeMethod GET `Action` \i ->
   "get thing" ++ show i
 
-getThing2 :: PathRoute (Int, Int) String
-getThing2 = route `forMethod` GET `forPath` "thing" *< parameter >*< parameter `action` \(i, sub) ->
+getThing2 :: Action (Int, Int) String
+getThing2 = routePath ("thing" *< parameter >*< parameter) >* routeMethod GET `Action` \(i, sub) ->
   "get thing" ++ show i ++ "." ++ show sub
 
-putThing :: PathRoute Int String
-putThing = route `forMethod` PUT `forPath` "thing" *< parameter `action` \i ->
+putThing :: Action Int String
+putThing = routePath ("thing" *< parameter) >* routeMethod PUT `Action` \i ->
   "put thing" ++ show i
 
-postThing :: PathRoute String String
-postThing = route `forMethod` POST `forPath` "thing" *< parameter `action` \i ->
+postThing :: Action String String
+postThing = routePath ("thing" *< parameter) >* routeMethod POST  `Action` \i ->
   "post thing=" ++ i
 
-anyThingSub :: PathRoute (Int, [Int]) String
-anyThingSub = route `forPath` "thing" *< parameter >* "sub" >*< manyI parameter `action` \(i, l) ->
+anyThingSub :: Action (Int, [Int]) String
+anyThingSub = routePath ("thing" *< parameter >* "sub" >*< manyI parameter) `Action` \(i, l) ->
   "thing" ++ show i ++ " sub" ++ concatMap ((' ' :) . show) l
 
-ignoredThing :: PathRoute Int String
-ignoredThing = route `forMethod` GET `forPath` "thing" *< parameter >* wildcard ["ign" :: String] `action` \i ->
+ignoredThing :: Action Int String
+ignoredThing = routePath ("thing" *< parameter >* wildcard ["ign" :: String]) >* routeMethod GET `Action` \i ->
   "ignore thing" ++ show i
 
 things :: RouteMap String
@@ -53,11 +53,11 @@ req m p = blankRequest
 tests :: Q.Property
 tests = Q.conjoin
   [ routeRequest (req PUT ["thing", "09"]) things Q.=== Right "put thing9"
-  , requestRoute postThing "foo" Q.=== req POST ["thing", "foo"]
+  , requestRoute (actionRoute postThing) "foo" Q.=== req POST ["thing", "foo"]
   , lookupRoute (req OPTIONS ["thing", "xxx"]) things Q.=== AllowedMethods [POST]
   , routeRequest (req PUT ["thing", "0", "sub", "12", "34"]) things Q.=== Right "thing0 sub 12 34"
   , routeRequest (req GET ["thing", "0", "12", "34"]) things Q.=== Right "ignore thing0"
-  , requestRoute ignoredThing (-3) Q.=== req GET ["thing", "-3", "ign"]
+  , requestRoute (actionRoute ignoredThing) (-3) Q.=== req GET ["thing", "-3", "ign"]
   ]
 
 main :: IO ()

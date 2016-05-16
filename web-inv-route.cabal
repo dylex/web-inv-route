@@ -37,9 +37,7 @@ library
     Web.Route.Invertible.Host
     Web.Route.Invertible.Method
     Web.Route.Invertible.Route
-    Web.Route.Invertible.HRoute
     Web.Route.Invertible.Request
-    Web.Route.Invertible.Type
     Web.Route.Invertible.Result
     Web.Route.Invertible.Monoid.Exactly
     Web.Route.Invertible.Monoid.Prioritized
@@ -55,7 +53,6 @@ library
     Web.Route.Invertible.Map.Host
     Web.Route.Invertible.Map.Method
     Web.Route.Invertible.Map.Route
-    Web.Route.Invertible.Map.HRoute
 
   build-depends:       
     base >= 4.8 && <5,
