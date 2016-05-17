@@ -11,19 +11,19 @@ import Web.Route.Invertible.Request
 import Web.Route.Invertible.Map.Route
 
 getThing :: Action Int String
-getThing = routePath ("thing" *< parameter) >* routeMethod GET `Action` \i ->
+getThing = routeMethod GET *< routePath ("thing" *< parameter) `Action` \i ->
   "get thing" ++ show i
 
 getThing2 :: Action (Int, Int) String
-getThing2 = routePath ("thing" *< parameter >*< parameter) >* routeMethod GET `Action` \(i, sub) ->
+getThing2 = routeMethod GET *< routePath ("thing" *< parameter >*< parameter) `Action` \(i, sub) ->
   "get thing" ++ show i ++ "." ++ show sub
 
 putThing :: Action Int String
-putThing = routePath ("thing" *< parameter) >* routeMethod PUT `Action` \i ->
+putThing = routeMethod PUT *< routePath ("thing" *< parameter) `Action` \i ->
   "put thing" ++ show i
 
 postThing :: Action String String
-postThing = routePath ("thing" *< parameter) >* routeMethod POST  `Action` \i ->
+postThing = routeMethod POST *< routePath ("thing" *< parameter) `Action` \i ->
   "post thing=" ++ i
 
 anyThingSub :: Action (Int, [Int]) String
@@ -31,17 +31,17 @@ anyThingSub = routePath ("thing" *< parameter >* "sub" >*< manyI parameter) `Act
   "thing" ++ show i ++ " sub" ++ concatMap ((' ' :) . show) l
 
 ignoredThing :: Action Int String
-ignoredThing = routePath ("thing" *< parameter >* wildcard ["ign" :: String]) >* routeMethod GET `Action` \i ->
+ignoredThing = routeMethod GET *< routePath ("thing" *< parameter >* wildcard ["ign" :: String]) `Action` \i ->
   "ignore thing" ++ show i
 
 things :: RouteMap String
 things = routes
-  [ routeCase getThing
-  , routeCase putThing
-  , routeCase postThing
-  , routeCase getThing2
-  , routeCase anyThingSub
-  , routeCase ignoredThing
+  [ routeNormCase getThing
+  , routeNormCase putThing
+  , routeNormCase postThing
+  , routeNormCase getThing2
+  , routeNormCase anyThingSub
+  , routeNormCase ignoredThing
   ]
 
 req :: Method -> [T.Text] -> Request

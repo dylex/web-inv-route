@@ -5,6 +5,7 @@ module Web.Route.Invertible.Map.Route
   ( RouteCase
   , RouteMap
   , routeCase
+  , routeNormCase
   , routes
   , fallbackHEADtoGET
   , RouteResult(..)
@@ -119,6 +120,9 @@ routeState (Route r) = runFree $ mapFree predicateState r
 
 routeCase :: Action a b -> RouteCase b
 routeCase (Action r f) = mapRoute (\s -> f . evalState s) $ routeState r
+
+routeNormCase :: Action a b -> RouteCase b
+routeNormCase (Action r f) = mapRoute (\s -> f . evalState s) $ routeState $ normalizeRoute r
 
 routes :: [RouteCase a] -> RouteMap a
 routes = mconcat
