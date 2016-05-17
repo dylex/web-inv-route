@@ -10,7 +10,6 @@ import Test.QuickCheck.Test (isSuccess)
 import Web.Route.Invertible
 import Web.Route.Invertible.Host (splitHost)
 import Web.Route.Invertible.Request (blankRequest)
-import Web.Route.Invertible.Route (normRoute)
 import Web.Route.Invertible.Map.Route (lookupRoute)
 import Web.Route.Invertible.Result (RouteResult(..))
 
@@ -74,8 +73,6 @@ tests = Q.conjoin
 
 main :: IO ()
 main = do
-  print $ actionRoute complex
-  print $ normRoute $ actionRoute complex
   r <- Q.quickCheckResult tests
   if isSuccess r
     then exitSuccess

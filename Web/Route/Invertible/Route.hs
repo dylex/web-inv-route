@@ -15,7 +15,7 @@ module Web.Route.Invertible.Route
   , Action(..)
   ) where
 
-import Control.Arrow (first)
+import Control.Arrow ((***), first, second)
 import Control.Invertible.Monoidal
 import Control.Invertible.Monoidal.Free
 import Data.Function (on)
@@ -123,10 +123,13 @@ compareRange a b
   | otherwise = Nothing -- indeterminate
 
 normJoin :: Free RoutePredicate a -> Free RoutePredicate b -> Free RoutePredicate (a, b)
+normJoin (Transform f p) (Transform g q) = (f *** g) >$< normJoin p q
+normJoin (Transform f p) q = first f >$< normJoin p q
+normJoin p (Transform f q) = second f >$< normJoin p q
 normJoin Empty (Join b c) = I.invert I.snd >$< normJoin b c
 normJoin p@(Free x) (Join q@(Free y) r) | predicateOrder x > predicateOrder y =
   [I.biCase|(a,(b,c)) <-> (b,(a,c))|] >$< Join q (normJoin p r)
-normJoin (Join p q) r = [I.biCase|(a,(b,c)) <-> ((a,b),c)|] >$< normJoin p (Join q r)
+normJoin (Join p q) r = [I.biCase|(a,(b,c)) <-> ((a,b),c)|] >$< normJoin p (normJoin q r)
 normJoin a b = Join a b -- shouldn't happen
 
 normFree :: Free RoutePredicate a -> (Free RoutePredicate a, Range Int)
