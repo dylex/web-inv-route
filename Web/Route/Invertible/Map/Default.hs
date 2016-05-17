@@ -16,7 +16,7 @@ import Data.Monoid ((<>))
 data DefaultMap m v = DefaultMap
   { defaultMap :: !(m v)
   , defaultValue :: !(Maybe v)
-  }
+  } deriving (Eq, Show)
 
 instance Functor m => Functor (DefaultMap m) where
   fmap f (DefaultMap m d) = DefaultMap (fmap f m) (fmap f d)

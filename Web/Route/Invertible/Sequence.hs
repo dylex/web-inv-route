@@ -43,6 +43,10 @@ import Web.Route.Invertible.Placeholder
 newtype Sequence s a = Sequence { freeSequence :: Free (Placeholder s) a }
   deriving (I.Functor, Monoidal, MonoidalAlt)
 
+instance Show s => Show (Sequence s a) where
+  showsPrec d (Sequence s) = showParen (d > 10) $
+    showString "Sequence " . showsFree (showsPrec 11) s
+
 placeholderSequence :: Placeholder s a -> Sequence s a
 placeholderSequence = Sequence . Free
 

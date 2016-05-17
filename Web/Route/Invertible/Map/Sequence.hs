@@ -46,7 +46,7 @@ import Web.Route.Invertible.Map.Placeholder
 data SequenceMap s a = SequenceMap
   { sequenceMapPlaceholder :: PlaceholderMap s (SequenceMap s a)
   , sequenceMapValue :: !(Maybe a)
-  }
+  } deriving (Eq, Show)
 
 unionSequenceWith :: RouteString s => (Maybe a -> Maybe a -> Maybe a) -> SequenceMap s a -> SequenceMap s a -> SequenceMap s a
 unionSequenceWith f (SequenceMap m1 v1) (SequenceMap m2 v2) =

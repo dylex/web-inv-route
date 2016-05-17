@@ -15,7 +15,7 @@ import qualified Data.Map.Strict as M
 
 -- |A specialized version of 'M.Map'.
 newtype MonoidMap k a = MonoidMap { monoidMap :: M.Map k a }
-  deriving (Foldable)
+  deriving (Eq, Foldable, Show)
 
 -- |'mappend' is equivalent to @'M.unionWith' 'mappend'@.
 instance (Ord k, Monoid a) => Monoid (MonoidMap k a) where

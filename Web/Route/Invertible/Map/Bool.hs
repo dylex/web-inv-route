@@ -14,7 +14,7 @@ import Data.Monoid ((<>))
 data BoolMap v = BoolMap
   { boolMapFalse :: !(Maybe v) -- ^The value associated with 'False'.
   , boolMapTrue :: !(Maybe v) -- ^The value associated with 'True'.
-  }
+  } deriving (Eq, Show)
 
 instance Functor BoolMap where
   fmap f (BoolMap a b) = BoolMap (fmap f a) (fmap f b)

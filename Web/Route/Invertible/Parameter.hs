@@ -106,6 +106,9 @@ instance Ord (ParameterType s) where
   ParameterType a `compare` ParameterType b = typeRep a `compare` typeRep b
 instance Hashable (ParameterType s) where
   hashWithSalt s (ParameterType d) = hashWithSalt s (typeRep d)
+instance Show (ParameterType s) where
+  showsPrec d (ParameterType p) = showParen (d > 10) $
+    showString "ParameterType " . showsPrec 11 (typeRep p)
 
 -- |Similar to 'typeRep'.
 parameterTypeOf :: forall s proxy a . Parameter s a => proxy a -> ParameterType s

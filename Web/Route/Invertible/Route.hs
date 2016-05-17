@@ -1,6 +1,6 @@
 -- |Single-route construction.
 -- This package lets you describe the individual end-points for routing and their associated values, essentially packaging up 'Host', 'Path', 'Method' and others with a value ('action') to represent an entry in your routing table.
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
+{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveDataTypeable, QuasiQuotes #-}
 module Web.Route.Invertible.Route
   ( RoutePredicate(..)
   , Route(..)
@@ -9,7 +9,7 @@ module Web.Route.Invertible.Route
   , routePath
   , routeMethod
   , routePriority
-  , normalizeRoute
+  , normRoute
   , requestRoute'
   , requestRoute
   , Action(..)
@@ -35,8 +35,24 @@ data RoutePredicate a where
   RouteMethod   :: !Method   -> RoutePredicate ()
   RoutePriority :: !Int      -> RoutePredicate ()
 
+instance Show (RoutePredicate a) where
+  showsPrec d (RouteHost h) = showParen (d > 10) $
+    showString "RouteHost " . showsPrec 11 h
+  showsPrec d (RouteSecure s) = showParen (d > 10) $
+    showString "RouteSecure " . showsPrec 11 s
+  showsPrec d (RoutePath p) = showParen (d > 10) $
+    showString "RoutePath " . showsPrec 11 p
+  showsPrec d (RouteMethod m) = showParen (d > 10) $
+    showString "RouteMethod " . showsPrec 11 m
+  showsPrec d (RoutePriority p) = showParen (d > 10) $
+    showString "RoutePriority " . showsPrec 11 p
+
 newtype Route a = Route { freeRoute :: Free RoutePredicate a }
   deriving (I.Functor, Monoidal, MonoidalAlt)
+
+instance Show (Route a) where
+  showsPrec d (Route s) = showParen (d > 10) $
+    showString "Route " . showsFree (showsPrec 11) s
 
 routeHost :: Host h -> Route h
 routeHost = Route . Free . RouteHost
@@ -106,21 +122,29 @@ compareRange a b
   | rangeLower a >= rangeUpper b = Just GT -- definitely after
   | otherwise = Nothing -- indeterminate
 
-normalizeFree :: Free RoutePredicate a -> (Free RoutePredicate a, Range Int)
-normalizeFree Empty = (Empty, EmptyRange)
-normalizeFree (Transform f p) = first (Transform f) $ normalizeFree p
-normalizeFree (Choose a b) = (Choose a' b', ar <> br) where
-  (a', ar) = normalizeFree a
-  (b', br) = normalizeFree b
-normalizeFree (Join a b) = (nj $ compareRange ar br, ar <> br) where
+normJoin :: Free RoutePredicate a -> Free RoutePredicate b -> Free RoutePredicate (a, b)
+normJoin Empty (Join b c) = I.invert I.snd >$< normJoin b c
+normJoin p@(Free x) (Join q@(Free y) r) | predicateOrder x > predicateOrder y =
+  [I.biCase|(a,(b,c)) <-> (b,(a,c))|] >$< Join q (normJoin p r)
+normJoin (Join p q) r = [I.biCase|(a,(b,c)) <-> ((a,b),c)|] >$< normJoin p (Join q r)
+normJoin a b = Join a b -- shouldn't happen
+
+normFree :: Free RoutePredicate a -> (Free RoutePredicate a, Range Int)
+normFree Empty = (Empty, EmptyRange)
+normFree (Transform f p) = first (Transform f) $ normFree p
+normFree (Choose a b) = (Choose a' b', ar <> br) where
+  (a', ar) = normFree a
+  (b', br) = normFree b
+normFree (Join a b) = (nj $ compareRange ar br, ar <> br) where
   nj (Just GT) = I.swap >$< Join b' a'
   nj (Just _) = Join a' b'
-  (a', ar) = normalizeFree a
-  (b', br) = normalizeFree b
-normalizeFree f@(Free p) = (f, pure $ predicateOrder p)
+  nj Nothing = normJoin a' b'
+  (a', ar) = normFree a
+  (b', br) = normFree b
+normFree f@(Free p) = (f, pure $ predicateOrder p)
 
-normalizeRoute :: Route a -> Route a
-normalizeRoute = Route . fst . normalizeFree . freeTDNF . freeRoute
+normRoute :: Route a -> Route a
+normRoute = Route . fst . normFree . freeTDNF . freeRoute
 
 requestRoutePredicate :: RoutePredicate a -> a -> Request -> Request
 requestRoutePredicate (RouteHost (HostRev s)) h q = q{ requestHost = renderSequence s h }

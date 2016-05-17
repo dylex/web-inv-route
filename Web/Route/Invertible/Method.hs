@@ -49,19 +49,19 @@ instance IsMethod (Either ByteString H.StdMethod) where
   toMethod = either ExtensionMethod toMethod
 
 instance IsMethod ByteString where
-  toMethod = toMethod . H.parseMethod
+  toMethod "OPTIONS" = OPTIONS
+  toMethod "GET" = GET
+  toMethod "HEAD" = HEAD
+  toMethod "POST" = POST
+  toMethod "PUT" = PUT
+  toMethod "DELETE" = DELETE
+  toMethod "TRACE" = TRACE
+  toMethod "CONNECT" = CONNECT
+  toMethod "PATCH" = PATCH
+  toMethod m = ExtensionMethod m
 
 instance Parameter ByteString Method where
-  parseParameter "OPTIONS" = Just OPTIONS
-  parseParameter "GET" = Just GET
-  parseParameter "HEAD" = Just HEAD
-  parseParameter "POST" = Just POST
-  parseParameter "PUT" = Just PUT
-  parseParameter "DELETE" = Just DELETE
-  parseParameter "TRACE" = Just TRACE
-  parseParameter "CONNECT" = Just CONNECT
-  parseParameter "PATCH" = Just PATCH
-  parseParameter m = Just (ExtensionMethod m)
+  parseParameter = Just . toMethod
   renderParameter OPTIONS = "OPTIONS"
   renderParameter GET = "GET"
   renderParameter HEAD = "HEAD"

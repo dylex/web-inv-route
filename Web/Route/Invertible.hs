@@ -20,6 +20,7 @@ module Web.Route.Invertible
     -- * Forward routing
   , RouteCase
   , routeCase
+  , routeNormCase
   , RouteMap
   , routes
   , Request(..)

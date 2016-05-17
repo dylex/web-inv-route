@@ -10,7 +10,7 @@ import Data.Monoid ((<>))
 data Prioritized a = Prioritized
   { priority :: !Int -- ^ The priority this value, where larger numeric values have higher priority and take precedence over lower priorities.
   , prioritized :: !a -- ^ The prioritized value.
-  }
+  } deriving (Eq, Show)
 
 instance Functor Prioritized where
   fmap f (Prioritized p x) = Prioritized p (f x)

@@ -35,7 +35,7 @@ joinHost = BS.intercalate (BSC.singleton '.') . reverse
 -- |A hostname matcher, providing the same functionality as 'Sequence'.
 -- This matches hostnames in reverse order (from TLD down), but the 'Monoidal' instance and 'splitHost' automatically deal with this for you.
 newtype Host a = HostRev { hostSequence :: Sequence HostString a }
-  deriving (I.Functor, MonoidalAlt, Parameterized HostString)
+  deriving (I.Functor, MonoidalAlt, Parameterized HostString, Show)
 
 instance Monoidal Host where
   unit = HostRev unit

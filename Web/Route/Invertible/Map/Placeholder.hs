@@ -23,7 +23,7 @@ import Web.Route.Invertible.Map.ParameterType
 data PlaceholderMap s a = PlaceholderMap
   { placeholderMapFixed :: !(HM.HashMap s a)
   , placeholderMapParameter :: !(ParameterTypeMap s a)
-  }
+  } deriving (Eq, Show)
 
 -- |Values are combined using 'mappend'.
 instance (RouteString s, Monoid a) => Monoid (PlaceholderMap s a) where

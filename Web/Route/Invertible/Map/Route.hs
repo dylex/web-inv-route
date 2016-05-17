@@ -8,7 +8,6 @@ module Web.Route.Invertible.Map.Route
   , routeNormCase
   , routes
   , fallbackHEADtoGET
-  , RouteResult(..)
   , lookupRoute
   ) where
 
@@ -46,6 +45,7 @@ data RouteMapT m a
   | RouteMapPath      !(DefaultMap PathMap (RouteMapT m a))
   | RouteMapSecure    !(BoolMap (RouteMapT m a))
   | RouteMapHost      !(DefaultMap HostMap (RouteMapT m a))
+  deriving (Show)
 
 instance Monoid (RouteMapT m a) where
   mempty = RouteMapExactly Blank
@@ -122,7 +122,7 @@ routeCase :: Action a b -> RouteCase b
 routeCase (Action r f) = mapRoute (\s -> f . evalState s) $ routeState r
 
 routeNormCase :: Action a b -> RouteCase b
-routeNormCase (Action r f) = mapRoute (\s -> f . evalState s) $ routeState $ normalizeRoute r
+routeNormCase (Action r f) = mapRoute (\s -> f . evalState s) $ routeState $ normRoute r
 
 routes :: [RouteCase a] -> RouteMap a
 routes = mconcat
