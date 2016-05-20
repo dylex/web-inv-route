@@ -1,5 +1,5 @@
 module Web.Route.Invertible.Wai
-  ( module Web.Route.Invertible
+  ( module Web.Route.Invertible.Common
   , routeWai
   , routeWaiApplicationError
   , routeWaiApplication
@@ -12,7 +12,8 @@ import Network.HTTP.Types.Status (Status)
 import Web.Route.Invertible.Host
 import Web.Route.Invertible.Method
 import Web.Route.Invertible.Request
-import Web.Route.Invertible hiding (Request, Method)
+import Web.Route.Invertible.Common
+import Web.Route.Invertible
 
 waiRequest :: Wai.Request -> Request
 waiRequest q = Request

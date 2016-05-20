@@ -7,10 +7,6 @@ import System.Exit (exitSuccess, exitFailure)
 import qualified Test.HUnit as U
 
 import Web.Route.Invertible
-import Web.Route.Invertible.Host (splitHost)
-import Web.Route.Invertible.Request (blankRequest)
-import Web.Route.Invertible.Map.Route (lookupRoute)
-import Web.Route.Invertible.Result (RouteResult(..))
 
 getThing :: Action Int String
 getThing = routeMethod GET *< routePath ("thing" *< parameter) `Action` \i ->

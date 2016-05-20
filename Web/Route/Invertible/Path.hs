@@ -35,7 +35,7 @@ type PathString = T.Text
 normalizePath :: [PathString] -> [PathString]
 normalizePath = filter (not . T.null)
 
--- |A URL path parser/generator, providing the same functionality as 'Sequence'.
+-- |A URL path parser/generator.
 -- These should typically be constructed using the 'IsString' and 'Parameterized' instances.
 -- Note that the individual components are /decoded/ path segments, so a literal slash in a component (e.g., as produced with 'fromString') will match \"%2F\".
 -- Example:

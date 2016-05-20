@@ -47,7 +47,10 @@ instance Show (RoutePredicate a) where
   showsPrec d (RoutePriority p) = showParen (d > 10) $
     showString "RoutePriority " . showsPrec 11 p
 
--- |A 'Monoidal' collection of 'RoutePredicate's.
+-- |A 'Monoidal' collection of routing predicates.
+-- For example:
+--
+-- > routeHost ("www" >* "domain.com") *< routePath ("object" *< parameter) :: Route Int
 newtype Route a = Route { freeRoute :: Free RoutePredicate a }
   deriving (I.Functor, Monoidal, MonoidalAlt)
 

@@ -33,7 +33,7 @@ splitHost = reverse . BSC.split '.'
 joinHost :: [HostString] -> BS.ByteString
 joinHost = BS.intercalate (BSC.singleton '.') . reverse
 
--- |A hostname matcher, providing the same functionality as 'Sequence'.
+-- |A hostname matcher.
 -- These should typically be constructed using the 'IsString' and 'Parameterized' instances.
 -- This matches hostnames in reverse order (from TLD down), but the 'Monoidal' instance and 'splitHost' automatically deal with this for you.
 -- Example:
