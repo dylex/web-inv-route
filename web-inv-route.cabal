@@ -85,5 +85,5 @@ test-suite tests
     base,
     bytestring,
     text,
-    QuickCheck,
+    HUnit,
     web-inv-route
