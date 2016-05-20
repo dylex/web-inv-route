@@ -22,6 +22,7 @@ import Web.Route.Invertible.Parameter
 import Web.Route.Invertible.Placeholder
 import Web.Route.Invertible.Sequence
 
+-- |The representation for domain names or domain name segments (after 'splitHost').
 type HostString = BS.ByteString
 
 -- |Split (and reverse) a domainname on \".\" for use with 'Host'.
@@ -33,7 +34,13 @@ joinHost :: [HostString] -> BS.ByteString
 joinHost = BS.intercalate (BSC.singleton '.') . reverse
 
 -- |A hostname matcher, providing the same functionality as 'Sequence'.
+-- These should typically be constructed using the 'IsString' and 'Parameterized' instances.
 -- This matches hostnames in reverse order (from TLD down), but the 'Monoidal' instance and 'splitHost' automatically deal with this for you.
+-- Example:
+--
+-- > parameter >* "domain" >* "com" :: Host String
+--
+-- matches (or generates) @*.domain.com@ and returns the @*@ component.
 newtype Host a = HostRev { hostSequence :: Sequence HostString a }
   deriving (I.Functor, MonoidalAlt, Parameterized HostString, Show)
 

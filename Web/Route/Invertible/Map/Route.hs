@@ -102,7 +102,11 @@ instance MonadTrans RouteMapT where
 
 type Placeholders = [SequencePlaceholderValue]
 type RouteState = RouteMapT (State Placeholders)
+-- |The type of a route map element created from a single 'Route'.
+-- These may be combined into a final 'RouteMap'.
+-- (Currently these are in fact the same representation, but this may change.)
 type RouteCase = RouteMapT ((->) Placeholders)
+-- |A map for efficiently looking up requests based on a set of individual route specifications.
 type RouteMap = RouteCase
 
 sequenceState :: RouteString s => Sequence s a -> DefaultMap (SequenceMap s) (RouteState a)
@@ -118,12 +122,16 @@ predicateState (RoutePriority p) = RouteMapPriority $ Prioritized p $ pure ()
 routeState :: Route a -> RouteState a
 routeState (Route r) = runFree $ mapFree predicateState r
 
+-- |Convert a 'Route' and result generator to a single entry in the routing table.
 routeCase :: Action a b -> RouteCase b
 routeCase (Action r f) = mapRoute (\s -> f . evalState s) $ routeState r
 
+-- |Combine 'routeCase' and 'normRoute'.
+-- See the description of 'normRoute' for an explaination.
 routeNormCase :: Action a b -> RouteCase b
 routeNormCase (Action r f) = mapRoute (\s -> f . evalState s) $ routeState $ normRoute r
 
+-- |Combine a list of routes to a single map.
 routes :: [RouteCase a] -> RouteMap a
 routes = mconcat
 

@@ -47,6 +47,7 @@ instance Show s => Show (Sequence s a) where
   showsPrec d (Sequence s) = showParen (d > 10) $
     showString "Sequence " . showsFree (showsPrec 11) s
 
+-- |Make a singleton 'Sequence' out of a 'Placeholder'.
 placeholderSequence :: Placeholder s a -> Sequence s a
 placeholderSequence = Sequence . Free
 

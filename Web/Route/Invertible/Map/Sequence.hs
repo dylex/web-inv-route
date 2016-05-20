@@ -22,9 +22,11 @@ module Web.Route.Invertible.Map.Sequence
   , SequencePlaceholderValue
   , singletonSequence
   , lookupSequence
+  -- * Example usage
   , SequenceMapApp
   , singletonSequenceApp
   , lookupSequenceApp
+  -- * Miscelaneous
   , unconsState'
   ) where
 
@@ -43,6 +45,7 @@ import Web.Route.Invertible.Sequence
 import Web.Route.Invertible.Map.Placeholder
 
 -- |A routing map for 'Sequence' parsers.
+-- Each joined ('Control.Invertible.Monoidal.>*<') component in the 'Sequence' becomes a level of the map.
 data SequenceMap s a = SequenceMap
   { sequenceMapPlaceholder :: PlaceholderMap s (SequenceMap s a)
   , sequenceMapValue :: !(Maybe a)
@@ -83,6 +86,7 @@ instance RouteString s => Monad (SequenceMap s) where
 
 instance RouteString s => MonadPlus (SequenceMap s)
 
+-- |As keys are looked up in the map, dynamic parsed placeholders are collected as a list of 'Dynamic's.
 type SequencePlaceholderValue = [Dynamic]
 
 newtype SequenceMapP s a = SequenceMapP { sequenceMapP :: SequenceMap s (State SequencePlaceholderValue a) }
@@ -99,6 +103,8 @@ instance RouteString s => Alternative (SequenceMapP s) where
   empty = SequenceMapP empty
   SequenceMapP a <|> SequenceMapP b = SequenceMapP $ a <|> b
 
+-- |Uncons the current state, leaving the tail in the state and returning the head.
+-- (This should probably be moved to some other module.)
 unconsState' :: State [a] a
 unconsState' = StateT $ \(~(x:l)) -> return (x, l)
 
@@ -114,15 +120,25 @@ placeholderMap p = SequenceMapP $
 singletonSequenceP :: RouteString s => Sequence s a -> SequenceMapP s a
 singletonSequenceP = runFree . mapFree placeholderMap . freeSequence
 
+-- |A sequence representing a single 'Sequence', with underlying @s@ strings as keys mapping to functions that convert from the resulting parsed parameters to the associated 'Sequence' value.
+-- Note that a single 'Sequence' can create multiple elements in the map, so this is not strictly a /singleton/.
 singletonSequence :: RouteString s => Sequence s a -> SequenceMap s (SequencePlaceholderValue -> a)
 singletonSequence = fmap evalState . sequenceMapP . singletonSequenceP
 
+-- |Lookup a list of strings in a 'SequenceMap', returning all the associated values as tuples of the parsed dynamic placeholders and the associated value.
+-- Note that if this map was created by 'singletonSequence', those values are themselves functions, so applying the first element to the second result will produce the original sequence value.
+-- This is the equivalent of 'parseSequence':
+--
+-- > parseSequence q s === map (uncurry ($)) (lookupSequence s (singletonSequence q))
+--
+-- Except that 'lookupSequence' is far more efficient, especially when there are large number of alternatives.
 lookupSequence :: RouteString s => [s] -> SequenceMap s a -> [(SequencePlaceholderValue, a)]
 lookupSequence (s:l) (SequenceMap m _) =
   either (lookupSequence l) (concatMap $ \(x,n) -> first (x:) <$> lookupSequence l n) $ lookupPlaceholder s m
 lookupSequence [] (SequenceMap _ Nothing) = mzero
 lookupSequence [] (SequenceMap _ (Just x)) = return ([], x)
 
+-- |An example way to use 'SequenceMap' to abstract over and thus union multiple heterogeneous sequences.
 type SequenceMapApp s m a = SequenceMap s (m (SequencePlaceholderValue -> a))
 
 -- |Create a map from a single 'Sequence' parser.  Since this abstracts the type of the sequence @p@ (but not @a@), sequences with different underlying types can be combined in the same map.

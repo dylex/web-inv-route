@@ -27,7 +27,7 @@ singletonParameterType p = MonoidMap . M.singleton (parameterTypeOf p)
 insertParameterType :: Parameter s p => proxy p -> a -> ParameterTypeMap s a -> ParameterTypeMap s a
 insertParameterType p a (MonoidMap m) = MonoidMap $ M.insert (parameterTypeOf p) a m
 
--- |/O(n)/. Find all types in the map that can parse the given string data, returning 'toDyn' of the parsed string and the associated map value.
+-- |/O(n)/. Find all types in the map that can parse the given string data, returning 'toDyn' of the parsed string (the result of 'parseParameter') and the associated map value.
 lookupParameterType :: s -> ParameterTypeMap s a -> [(Dynamic, a)]
 lookupParameterType s (MonoidMap m) = do
   (ParameterType t, nt) <- M.toList m

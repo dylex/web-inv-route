@@ -1,4 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
+-- |
+-- Conversion between "Network.URI" and routable representations such as 'Request'.
 module Web.Route.Invertible.URI
   ( requestURI 
   , uriRequest

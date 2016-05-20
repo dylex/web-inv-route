@@ -36,7 +36,13 @@ normalizePath :: [PathString] -> [PathString]
 normalizePath = filter (not . T.null)
 
 -- |A URL path parser/generator, providing the same functionality as 'Sequence'.
+-- These should typically be constructed using the 'IsString' and 'Parameterized' instances.
 -- Note that the individual components are /decoded/ path segments, so a literal slash in a component (e.g., as produced with 'fromString') will match \"%2F\".
+-- Example:
+--
+-- > "get" *< parameter >*< "value" *< parameter :: Path (String, Int)
+--
+-- matches (or generates) @\/get\/$x\/value\/$y@ for any string @$x@ and any int @$y@ and returns those values.
 newtype Path a = Path { pathSequence :: Sequence PathString a }
   deriving (I.Functor, Monoidal, MonoidalAlt, Parameterized PathString, Show)
 
