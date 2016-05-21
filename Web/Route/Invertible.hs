@@ -13,6 +13,9 @@ module Web.Route.Invertible
   , Request(..)
   , blankRequest
     -- * Reverse routing
+  , PlaceholderValue(..)
+  , pathValues
+  , renderPath
   , requestRoute'
     -- * Forward routing
   , RouteResult(..)
@@ -25,6 +28,7 @@ import Network.HTTP.Types.Header (ResponseHeaders)
 import Network.HTTP.Types.Status (Status)
 
 import Web.Route.Invertible.Parameter
+import Web.Route.Invertible.Placeholder
 import Web.Route.Invertible.Sequence
 import Web.Route.Invertible.Host
 import Web.Route.Invertible.Path

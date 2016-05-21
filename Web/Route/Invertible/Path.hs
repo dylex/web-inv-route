@@ -10,6 +10,8 @@ module Web.Route.Invertible.Path
   ( PathString
   , normalizePath
   , Path(..)
+  , pathValues
+  , renderPath
   , urlPathBuilder
   ) where
 
@@ -25,6 +27,7 @@ import qualified Data.Text.Encoding as TE
 import qualified Network.HTTP.Types.URI as H
 
 import Web.Route.Invertible.Parameter
+import Web.Route.Invertible.Placeholder
 import Web.Route.Invertible.Sequence
 
 -- |A component of a path, such that paths are represented by @['PathString']@ (after splitting on \'/\').
@@ -48,7 +51,15 @@ newtype Path a = Path { pathSequence :: Sequence PathString a }
 
 deriving instance IsString (Path ())
 
+-- |Render a 'Path' as instantiated by a value to a list of placeholder values.
+pathValues :: Path a -> a -> [PlaceholderValue PathString]
+pathValues (Path p) = sequenceValues p
+
+-- |Render a 'Path' as instantiated by a value to a list of string segments.
+renderPath :: Path a -> a -> [PathString]
+renderPath (Path p) = renderSequence p
+
 -- |Build a 'Path' as applied to a value into a bytestring 'B.Builder' by encoding the segments with 'urlEncodePath' and joining them with \"/\".
 urlPathBuilder :: Path a -> a -> B.Builder
-urlPathBuilder (Path p) a = foldMap es $ renderSequence p a where
+urlPathBuilder p a = foldMap es $ renderPath p a where
   es s = B.char7 '/' <> H.urlEncodeBuilder False (TE.encodeUtf8 s)

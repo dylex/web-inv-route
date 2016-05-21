@@ -11,6 +11,7 @@ module Web.Route.Invertible.Route
   , routeMethods
   , routeQuery
   , routeAccept
+  , routeAccepts
   , routeCustom
   , routeFilter
   , routePriority
@@ -101,9 +102,7 @@ routeMethod = Route . Free . RouteMethod . toMethod
 -- |Limit a route to a list of methods and return that method.
 -- Supplying a method not in this list when generating (reverse) routes will result in a run-time error.
 routeMethods :: (Eq m, IsMethod m) => [m] -> Route m
-routeMethods [] = error "routeMethods: empty list"
-routeMethods [m] = ((\() -> m) I.:<->: (\n -> if n == m then () else error ("routeMethods: unsupported method " ++ show (toMethod n)))) >$< routeMethod m
-routeMethods (m:l) = (I.fromMaybe m I.. I.rgt) >$< (routeMethod m >|< routeMethods l)
+routeMethods = oneOfI routeMethod
 
 -- |Limit a route to requests with a matching URL query parameter.
 -- By default, other routes match only when the given parameter is missing.
@@ -115,6 +114,11 @@ routeQuery q = Route . Free . RouteQuery q
 -- By default, routes match only requests without bodies or with content-type headers not matched by any other routes.
 routeAccept :: ContentType -> Route ()
 routeAccept = Route . Free . RouteAccept
+
+-- |Limit a route to a list of methods and return that method.
+-- Supplying a method not in this list when generating (reverse) routes will result in a run-time error.
+routeAccepts :: [ContentType] -> Route ContentType
+routeAccepts = oneOfI routeAccept
 
 -- |A custom routing predicate that can perform arbitrary tests on the request and reverse routing.
 -- The first argument is used in forward routing to check the request, and only passes if it returns 'Just'.
