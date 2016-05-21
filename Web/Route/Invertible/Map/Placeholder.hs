@@ -6,18 +6,22 @@ module Web.Route.Invertible.Map.Placeholder
   , emptyPlaceholderMap
   , unionPlaceholderWith
   , singletonPlaceholder
+  , singletonPlaceholderState
   , insertPlaceholder
   , lookupPlaceholder
+  , lookupPlaceholderWith
   ) where
 
 import Prelude hiding (lookup)
 
+import Control.Arrow (first)
 import Data.Dynamic (Dynamic)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as M
 
 import Web.Route.Invertible.String
 import Web.Route.Invertible.Placeholder
+import Web.Route.Invertible.Dynamics
 import Web.Route.Invertible.Map.Monoid
 import Web.Route.Invertible.Map.ParameterType
 
@@ -51,6 +55,13 @@ singletonPlaceholder :: RouteString s => Placeholder s p -> a -> PlaceholderMap 
 singletonPlaceholder (PlaceholderFixed t) v = PlaceholderMap (HM.singleton t v) (MonoidMap M.empty)
 singletonPlaceholder t@PlaceholderParameter v = PlaceholderMap HM.empty (singletonParameterType t v)
 
+placeholderState :: Placeholder s a -> DynamicState a
+placeholderState (PlaceholderFixed _) = pure ()
+placeholderState PlaceholderParameter = getDynamic
+
+singletonPlaceholderState :: RouteString s => Placeholder s a -> PlaceholderMap s (DynamicState a)
+singletonPlaceholderState p = singletonPlaceholder p $ placeholderState p
+
 -- |Insert a new key and value in the map.
 insertPlaceholder :: RouteString s => Placeholder s p -> a -> PlaceholderMap s a -> PlaceholderMap s a
 insertPlaceholder (PlaceholderFixed t) v (PlaceholderMap s p) = PlaceholderMap (HM.insert t v s) p
@@ -59,4 +70,9 @@ insertPlaceholder t@PlaceholderParameter v (PlaceholderMap s p) = PlaceholderMap
 -- |Lookup a string in the map, returning either the value associated with a 'PlaceholderFixed' key, or the list of matching 'PlaceholderParameter' keys, parsed into a 'Dynamic' representation (the result of 'parseParameter') and the associated value, if any.
 -- If no keys match, the result is @Right []@.
 lookupPlaceholder :: RouteString s => s -> PlaceholderMap s a -> Either a [(Dynamic, a)]
-lookupPlaceholder t (PlaceholderMap s p) = maybe (Right $ lookupParameterType t p) Left $ HM.lookup t s
+lookupPlaceholder t (PlaceholderMap s p) =
+  maybe (Right $ lookupParameterType t p) Left $ HM.lookup t s
+
+lookupPlaceholderWith :: RouteString s => s -> PlaceholderMap s a -> (a -> [DynamicResult b]) -> [DynamicResult b]
+lookupPlaceholderWith t (PlaceholderMap s p) f =
+  maybe (concatMap (\(x,n) -> first (x:) <$> f n) $ lookupParameterType t p) f $ HM.lookup t s

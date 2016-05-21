@@ -9,6 +9,7 @@ module Web.Route.Invertible
   , normalizePath
   , Method(..)
   , IsMethod(..)
+  , QueryParams
   , Request(..)
   , blankRequest
     -- * Reverse routing
@@ -28,6 +29,7 @@ import Web.Route.Invertible.Sequence
 import Web.Route.Invertible.Host
 import Web.Route.Invertible.Path
 import Web.Route.Invertible.Method
+import Web.Route.Invertible.Query
 import Web.Route.Invertible.Route
 import Web.Route.Invertible.Request
 import Web.Route.Invertible.Result

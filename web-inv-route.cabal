@@ -39,6 +39,9 @@ library
     Web.Route.Invertible.Path
     Web.Route.Invertible.Host
     Web.Route.Invertible.Method
+    Web.Route.Invertible.Query
+    Web.Route.Invertible.ContentType
+    Web.Route.Invertible.Dynamics
     Web.Route.Invertible.Route
     Web.Route.Invertible.Request
     Web.Route.Invertible.Result
@@ -46,6 +49,7 @@ library
     Web.Route.Invertible.Monoid.Prioritized
     Web.Route.Invertible.Map
     Web.Route.Invertible.Map.Monoid
+    Web.Route.Invertible.Map.MonoidHash
     Web.Route.Invertible.Map.Default
     Web.Route.Invertible.Map.Const
     Web.Route.Invertible.Map.Bool
@@ -55,6 +59,8 @@ library
     Web.Route.Invertible.Map.Path
     Web.Route.Invertible.Map.Host
     Web.Route.Invertible.Map.Method
+    Web.Route.Invertible.Map.Query
+    Web.Route.Invertible.Map.Custom
     Web.Route.Invertible.Map.Route
 
   build-depends:       

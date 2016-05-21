@@ -5,12 +5,15 @@ module Web.Route.Invertible.Wai
   , routeWaiApplication
   ) where
 
+import Control.Arrow (second)
+import Data.Maybe (fromMaybe)
 import qualified Network.Wai as Wai
-import Network.HTTP.Types.Header (ResponseHeaders)
+import Network.HTTP.Types.Header (ResponseHeaders, hContentType)
 import Network.HTTP.Types.Status (Status)
 
 import Web.Route.Invertible.Host
 import Web.Route.Invertible.Method
+import Web.Route.Invertible.Query
 import Web.Route.Invertible.Request
 import Web.Route.Invertible.Common
 import Web.Route.Invertible
@@ -21,6 +24,8 @@ waiRequest q = Request
   , requestSecure = Wai.isSecure q
   , requestMethod = toMethod $ Wai.requestMethod q
   , requestPath = Wai.pathInfo q
+  , requestQuery = simpleQueryParams $ map (second $ fromMaybe mempty) $ Wai.queryString q
+  , requestContentType = fromMaybe mempty $ lookup hContentType $ Wai.requestHeaders q
   }
 
 routeWai :: Wai.Request -> RouteMap a -> Either (Status, ResponseHeaders) a

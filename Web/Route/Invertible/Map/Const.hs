@@ -20,6 +20,7 @@ import Web.Route.Invertible.Map.Default
 data ConstMap m v = ConstMap
   { constMap :: !(m v) -- ^The underlying map.
   , constValue :: !v } -- ^The constant value to return for any key.
+  deriving (Show)
 
 instance Functor m => Functor (ConstMap m) where
   fmap f (ConstMap m v) = ConstMap (fmap f m) (f v)

@@ -9,6 +9,10 @@ module Web.Route.Invertible.Route
   , routePath
   , routeMethod
   , routeMethods
+  , routeQuery
+  , routeAccept
+  , routeCustom
+  , routeFilter
   , routePriority
   , normRoute
   , requestRoute'
@@ -18,13 +22,19 @@ module Web.Route.Invertible.Route
 
 import Control.Invertible.Monoidal
 import Control.Invertible.Monoidal.Free
+import Control.Monad (guard)
+import qualified Data.HashMap.Lazy as HM
 import qualified Data.Invertible as I
 import Data.Monoid (Endo(..))
+import Data.Typeable (Typeable)
 
+import Web.Route.Invertible.Placeholder
 import Web.Route.Invertible.Sequence
 import Web.Route.Invertible.Host
 import Web.Route.Invertible.Method
 import Web.Route.Invertible.Path
+import Web.Route.Invertible.Query
+import Web.Route.Invertible.ContentType
 import Web.Route.Invertible.Request
 
 -- |A term, qualifier, or component of a route, each specifying one filter/attribute/parser/generator for a request.
@@ -33,6 +43,9 @@ data RoutePredicate a where
   RouteSecure   :: !Bool     -> RoutePredicate ()
   RoutePath     :: !(Path p) -> RoutePredicate p
   RouteMethod   :: !Method   -> RoutePredicate ()
+  RouteQuery    :: !QueryString -> !(Placeholder QueryString a) -> RoutePredicate a
+  RouteAccept   :: !ContentType -> RoutePredicate ()
+  RouteCustom   :: Typeable a => (Request -> Maybe a) -> (a -> Request -> Request) -> RoutePredicate a
   RoutePriority :: !Int      -> RoutePredicate ()
 
 instance Show (RoutePredicate a) where
@@ -44,6 +57,12 @@ instance Show (RoutePredicate a) where
     showString "RoutePath " . showsPrec 11 p
   showsPrec d (RouteMethod m) = showParen (d > 10) $
     showString "RouteMethod " . showsPrec 11 m
+  showsPrec d (RouteQuery q p) = showParen (d > 10) $
+    showString "RouteQuery " . showsPrec 11 q . showString " " . showsPrec 11 p
+  showsPrec d (RouteAccept t) = showParen (d > 10) $
+    showString "RouteAccept " . showsPrec 11 t
+  showsPrec d (RouteCustom _ _) = showParen (d > 10) $
+    showString "RouteCustom <function> <function>"
   showsPrec d (RoutePriority p) = showParen (d > 10) $
     showString "RoutePriority " . showsPrec 11 p
 
@@ -86,6 +105,29 @@ routeMethods [] = error "routeMethods: empty list"
 routeMethods [m] = ((\() -> m) I.:<->: (\n -> if n == m then () else error ("routeMethods: unsupported method " ++ show (toMethod n)))) >$< routeMethod m
 routeMethods (m:l) = (I.fromMaybe m I.. I.rgt) >$< (routeMethod m >|< routeMethods l)
 
+-- |Limit a route to requests with a matching URL query parameter.
+-- By default, other routes match only when the given parameter is missing.
+routeQuery :: QueryString -> Placeholder QueryString a -> Route a
+routeQuery q = Route . Free . RouteQuery q
+
+-- |Limit a route to requests with the given \"Content-type\" header, i.e., POST requests containing a request body of a certain type.
+-- Note that this does not relate to the type of the response or the \"Accept\" header.
+-- By default, routes match only requests without bodies or with content-type headers not matched by any other routes.
+routeAccept :: ContentType -> Route ()
+routeAccept = Route . Free . RouteAccept
+
+-- |A custom routing predicate that can perform arbitrary tests on the request and reverse routing.
+-- The first argument is used in forward routing to check the request, and only passes if it returns 'Just'.
+-- The second argument is used in reverse routing to modify the request according to the parameter.
+-- By default, routes match all requests -- unlike other predicates, matching a custom rule does not exclude other routes.
+-- This should be used sparingly and towards the end of a route as, unlike most other predicates, it only provides /O(n)/ lookups, as these functions must be called for every route candidate (those where all previous predicates match).
+routeCustom :: Typeable a => (Request -> Maybe a) -> (a -> Request -> Request) -> Route a
+routeCustom fwd rev = Route $ Free $ RouteCustom fwd rev
+
+-- |A simpler version of 'routeCustom' that just takes a filter function to check again the request.
+routeFilter :: (Request -> Bool) -> Route ()
+routeFilter f = routeCustom (guard . f) (\() -> id)
+
 -- |Set the priority of a route.  Routes with higher priority take precedence when there is a conflict.
 -- By default, routes have priority 0.
 -- When combining (with 'Web.Route.Invertible.Map.Route.routes') or normalizing (with 'normRoute') routes, this has the lowest precedence (so that conflicts are handled only after matching all other predicates).
@@ -97,9 +139,13 @@ predicateOrder (RouteHost     _) = 1
 predicateOrder (RouteSecure   _) = 2
 predicateOrder (RoutePath     _) = 3
 predicateOrder (RouteMethod   _) = 4
-predicateOrder (RoutePriority _) = 5
+predicateOrder (RouteQuery _  _) = 5
+predicateOrder (RouteAccept   _) = 6
+predicateOrder (RouteCustom _ _) = 7
+predicateOrder (RoutePriority _) = 8
 
 comparePredicate :: RoutePredicate a -> RoutePredicate b -> Ordering
+comparePredicate (RouteQuery p _) (RouteQuery q _) = compare p q
 comparePredicate p q = compare (predicateOrder p) (predicateOrder q)
 
 -- |By default, route predicates are matched in the order they are specified, so each test is done only if all preceding tests succeed.
@@ -115,6 +161,9 @@ requestRoutePredicate (RouteHost (HostRev s)) h q = q{ requestHost = renderSeque
 requestRoutePredicate (RouteSecure s)        () q = q{ requestSecure = s }
 requestRoutePredicate (RoutePath (Path s))    p q = q{ requestPath = renderSequence s p }
 requestRoutePredicate (RouteMethod m)        () q = q{ requestMethod = m }
+requestRoutePredicate (RouteQuery n p)        v q = q{ requestQuery = HM.insertWith (++) n [renderPlaceholder p v] $ requestQuery q }
+requestRoutePredicate (RouteAccept t)        () q = q{ requestContentType = t }
+requestRoutePredicate (RouteCustom _ f)       a q = f a q
 requestRoutePredicate (RoutePriority _)      () q = q
 
 -- |Given an instantiation of a 'Route' with its value, add the relevant reverse-route information to a 'Request'.

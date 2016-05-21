@@ -10,6 +10,11 @@ module Web.Route.Invertible.Common
   , routeMethod
   , routeMethods
   , IsMethod
+  , routeQuery
+  , QueryString
+  , routeAccept
+  , ContentType
+  , routeCustom
   , routePriority
   , Action(..)
     -- ** Parser construction
@@ -21,6 +26,7 @@ module Web.Route.Invertible.Common
   , Parameterized
   , parameter
   , param
+  , Placeholder
     -- * Reverse routing
   , requestRoute
     -- * Forward routing
@@ -36,9 +42,12 @@ import Control.Invertible.Monoidal
 
 import Web.Route.Invertible.String
 import Web.Route.Invertible.Parameter
+import Web.Route.Invertible.Placeholder
 import Web.Route.Invertible.Sequence
 import Web.Route.Invertible.Host
 import Web.Route.Invertible.Path
 import Web.Route.Invertible.Method
+import Web.Route.Invertible.Query
+import Web.Route.Invertible.ContentType
 import Web.Route.Invertible.Route
 import Web.Route.Invertible.Map.Route
