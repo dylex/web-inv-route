@@ -17,7 +17,7 @@ module Web.Route.Invertible.Route
   , normRoute
   , requestRoute'
   , requestRoute
-  , Action(..)
+  , RouteAction(..)
   ) where
 
 import Control.Invertible.Monoidal
@@ -175,12 +175,12 @@ requestRoute :: Route a -> a -> Request
 requestRoute r a = requestRoute' r a blankRequest
 
 -- |Specify the action to take for a given route, often used as an infix operator between the route specification and the function used to produce the result (which usually generates the HTTP response, but could be anything).
-data Action a b = Action
+data RouteAction a b = RouteAction
   { actionRoute :: !(Route a)
   , routeAction :: !(a -> b)
   }
 
-infix 1 `Action`
+infix 1 `RouteAction`
 
-instance Functor (Action a) where
-  fmap f (Action r a) = Action r $ f . a
+instance Functor (RouteAction a) where
+  fmap f (RouteAction r a) = RouteAction r $ f . a

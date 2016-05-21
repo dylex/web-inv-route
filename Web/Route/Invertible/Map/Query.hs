@@ -15,6 +15,7 @@ import Web.Route.Invertible.Map.Placeholder
 import Web.Route.Invertible.Query
 import Web.Route.Invertible.Dynamics
 
+-- |A map for parsing query parameters as 'Placeholder's by name, kept in alphabetical order to ensure consistent unions.
 data QueryMap a = QueryFinal (Maybe a) | QueryMap
   { queryParam :: !QueryString
   , queryMap :: !(PlaceholderMap QueryString (QueryMap a))
@@ -35,18 +36,23 @@ instance Monoid a => Monoid (QueryMap a) where
     EQ -> QueryMap n1 (m1 <> m2) (d1 <> d2)
     GT -> QueryMap n2 m2 (q1 <> d2)
 
+-- |The empty query map.
 emptyQueryMap :: QueryMap a
 emptyQueryMap = QueryFinal Nothing
 
+-- |The constant query map, always returning the same value.
 defaultQueryMap :: a -> QueryMap a
 defaultQueryMap = QueryFinal . Just
 
+-- |The query map with a single item, which maps queries containing the given query variable matching the placeholder to the specified @a@ value.
 singletonQuery :: QueryString -> Placeholder QueryString p -> a -> QueryMap a
 singletonQuery n p v = QueryMap n (singletonPlaceholder p $ defaultQueryMap v) emptyQueryMap
 
+-- |A 'singletonQuery' map with a 'DynamicState' value to parse the placeholder.
 singletonQueryState :: QueryString -> Placeholder QueryString p -> QueryMap (DynamicState p)
 singletonQueryState n p = QueryMap n (defaultQueryMap <$> singletonPlaceholderState p) emptyQueryMap
 
+-- |Lookup a URL query in the query map and return all matching results.
 lookupQuery :: QueryParams -> QueryMap a -> [DynamicResult a]
 lookupQuery _ (QueryFinal Nothing) = []
 lookupQuery _ (QueryFinal (Just a)) = [([], a)]

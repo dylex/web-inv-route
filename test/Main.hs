@@ -9,36 +9,36 @@ import qualified Test.HUnit as U
 import Web.Route.Invertible
 import Web.Route.Invertible.URI
 
-getThing :: Action Int String
-getThing = routeMethod GET *< routePath ("thing" *< parameter) `Action` \i ->
+getThing :: RouteAction Int String
+getThing = routeMethod GET *< routePath ("thing" *< parameter) `RouteAction` \i ->
   "get thing" ++ show i
 
-getThingQ :: Action (Int, Char) String
-getThingQ = routeMethod GET *< routePath ("thing" *< parameter) >*< routeQuery "type" parameter `Action` \(i, c) ->
+getThingQ :: RouteAction (Int, Char) String
+getThingQ = routeMethod GET *< routePath ("thing" *< parameter) >*< routeQuery "type" parameter `RouteAction` \(i, c) ->
   "get thing" ++ show i ++ ":" ++ [c]
 
-getThing2 :: Action (Int, Int) String
-getThing2 = routeMethod GET *< routePath ("thing" *< parameter >*< parameter) `Action` \(i, sub) ->
+getThing2 :: RouteAction (Int, Int) String
+getThing2 = routeMethod GET *< routePath ("thing" *< parameter >*< parameter) `RouteAction` \(i, sub) ->
   "get thing" ++ show i ++ "." ++ show sub
 
-putThing :: Action Int String
-putThing = routeMethod PUT *< routePath ("thing" *< parameter) `Action` \i ->
+putThing :: RouteAction Int String
+putThing = routeMethod PUT *< routePath ("thing" *< parameter) `RouteAction` \i ->
   "put thing" ++ show i
 
-postThing :: Action String String
-postThing = routeMethod POST *< routePath ("thing" *< parameter) `Action` \i ->
+postThing :: RouteAction String String
+postThing = routeMethod POST *< routePath ("thing" *< parameter) `RouteAction` \i ->
   "post thing=" ++ i
 
-anyThingSub :: Action (Int, [Int]) String
-anyThingSub = routePath ("thing" *< parameter >* "sub" >*< manyI parameter) `Action` \(i, l) ->
+anyThingSub :: RouteAction (Int, [Int]) String
+anyThingSub = routePath ("thing" *< parameter >* "sub" >*< manyI parameter) `RouteAction` \(i, l) ->
   "thing" ++ show i ++ " sub" ++ concatMap ((' ' :) . show) l
 
-ignoredThing :: Action Int String
-ignoredThing = routeMethod GET *< routePath ("things" *< parameter >* wildcard ["ign" :: String]) `Action` \i ->
+ignoredThing :: RouteAction Int String
+ignoredThing = routeMethod GET *< routePath ("things" *< parameter >* wildcard ["ign" :: String]) `RouteAction` \i ->
   "ignore thing" ++ show i
 
-complex :: Action () String
-complex = (routeMethod GET *< routeSecure False) *< (routePath "foo" *< routeHost ("foo" *< "com")) `Action` \() ->
+complex :: RouteAction () String
+complex = (routeMethod GET *< routeSecure False) *< (routePath "foo" *< routeHost ("foo" *< "com")) `RouteAction` \() ->
   "complex"
 
 things :: RouteMap String
@@ -59,7 +59,7 @@ things = routes
 rte :: Method -> String -> RouteResult String
 rte m u = lookupRoute (uriRequest m $ fromJust $ parseURI u) things
 
-req :: Action r a -> r -> (Method, String)
+req :: RouteAction r a -> r -> (Method, String)
 req a = fmap show . routeURI (actionRoute a)
 
 tests :: U.Test

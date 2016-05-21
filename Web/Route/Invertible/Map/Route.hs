@@ -152,13 +152,13 @@ routeState :: Route a -> RouteState a
 routeState (Route r) = runFree $ mapFree predicateState r
 
 -- |Convert a 'Route' and result generator to a single entry in the routing table.
-routeCase :: Action a b -> RouteCase b
-routeCase (Action r f) = mapRoute (\s -> f . evalState s) $ routeState r
+routeCase :: RouteAction a b -> RouteCase b
+routeCase (RouteAction r f) = mapRoute (\s -> f . evalState s) $ routeState r
 
 -- |Combine 'routeCase' and 'normRoute'.
 -- See the description of 'normRoute' for an explaination.
-routeNormCase :: Action a b -> RouteCase b
-routeNormCase (Action r f) = mapRoute (\s -> f . evalState s) $ routeState $ normRoute r
+routeNormCase :: RouteAction a b -> RouteCase b
+routeNormCase (RouteAction r f) = mapRoute (\s -> f . evalState s) $ routeState $ normRoute r
 
 -- |Combine a list of routes to a single map.
 routes :: [RouteCase a] -> RouteMap a
