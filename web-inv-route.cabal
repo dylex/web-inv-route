@@ -94,5 +94,6 @@ test-suite tests
     base,
     bytestring,
     text,
+    network-uri,
     HUnit,
     web-inv-route

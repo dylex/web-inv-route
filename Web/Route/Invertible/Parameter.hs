@@ -11,6 +11,7 @@ module Web.Route.Invertible.Parameter
 
 import Control.Monad (guard)
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
 import Data.Hashable (Hashable(..))
 import Data.Int (Int8, Int16, Int32, Int64)
 import Data.Word (Word8, Word16, Word32, Word64)
@@ -51,6 +52,17 @@ instance Parameter T.Text T.Text where
 instance Parameter BS.ByteString BS.ByteString where
   parseParameter = Just
   renderParameter = id
+
+instance Parameter String Char where
+  parseParameter [c] = Just c
+  parseParameter _ = Nothing
+  renderParameter c = [c]
+instance Parameter T.Text Char where
+  parseParameter = parseParameter . T.unpack
+  renderParameter = T.singleton
+instance Parameter BS.ByteString Char where
+  parseParameter = parseParameter . BSC.unpack
+  renderParameter = BSC.singleton
 
 instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Integer
 instance {-# OVERLAPPABLE #-} RouteString s => Parameter s Int
