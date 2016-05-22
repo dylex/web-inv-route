@@ -17,6 +17,7 @@ module Web.Route.Invertible.Common
   , routeCustom
   , routePriority
   , RouteAction(..)
+  , mapActionRoute
     -- ** Parser construction
   , module Control.Invertible.Monoidal
   , wildcard

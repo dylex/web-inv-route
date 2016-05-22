@@ -1,6 +1,6 @@
 -- |Single-route construction.
 -- This package lets you describe the individual end-points for routing and their associated values, essentially packaging up 'Host', 'Path', 'Method' and others with a value ('Action') to represent an entry in your routing table.
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveDataTypeable, RankNTypes, QuasiQuotes #-}
+{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveDataTypeable, RankNTypes, TypeOperators, QuasiQuotes #-}
 module Web.Route.Invertible.Route
   ( RoutePredicate(..)
   , Route(..)
@@ -20,6 +20,7 @@ module Web.Route.Invertible.Route
   , requestRoute'
   , requestRoute
   , RouteAction(..)
+  , mapActionRoute
   , requestActionRoute
   ) where
 
@@ -194,6 +195,9 @@ infix 1 `RouteAction`
 
 instance Functor (RouteAction a) where
   fmap f (RouteAction r a) = RouteAction r $ f . a
+
+mapActionRoute :: (a I.<-> b) -> RouteAction a r -> RouteAction b r
+mapActionRoute f (RouteAction r a) = RouteAction (f >$< r) (a . I.biFrom f)
 
 -- |Apply 'requestRoute' to 'actionRoute'.
 requestActionRoute :: RouteAction a b -> a -> Request
