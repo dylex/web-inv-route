@@ -12,6 +12,8 @@ module Web.Route.Invertible
   , RouteResult(..)
   , lookupRoute
   , routeRequest
+    -- * Reverse routing
+  , requestRoute
   ) where
 
 import Control.Invertible.Monoidal

@@ -1,6 +1,6 @@
 -- |Single-route construction.
 -- This package lets you describe the individual end-points for routing and their associated values, essentially packaging up 'Host', 'Path', 'Method' and others with a value ('Action') to represent an entry in your routing table.
-{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveDataTypeable, QuasiQuotes #-}
+{-# LANGUAGE GADTs, GeneralizedNewtypeDeriving, DeriveDataTypeable, RankNTypes, QuasiQuotes #-}
 module Web.Route.Invertible.Route
   ( RoutePredicate(..)
   , Route(..)
@@ -16,9 +16,11 @@ module Web.Route.Invertible.Route
   , routeFilter
   , routePriority
   , normRoute
+  , foldRoute
   , requestRoute'
   , requestRoute
   , RouteAction(..)
+  , requestActionRoute
   ) where
 
 import Control.Invertible.Monoidal
@@ -160,6 +162,10 @@ comparePredicate p q = compare (predicateOrder p) (predicateOrder q)
 normRoute :: Route a -> Route a
 normRoute = Route . sortFreeTDNF comparePredicate . freeRoute
 
+-- |Fold over the predicates in an instatiated route.
+foldRoute :: Monoid b => (forall a' . RoutePredicate a' -> a' -> b) -> Route a -> a -> b
+foldRoute f (Route r) = foldFree f r
+
 requestRoutePredicate :: RoutePredicate a -> a -> Request -> Request
 requestRoutePredicate (RouteHost (HostRev s)) h q = q{ requestHost = renderSequence s h }
 requestRoutePredicate (RouteSecure s)        () q = q{ requestSecure = s }
@@ -172,7 +178,7 @@ requestRoutePredicate (RoutePriority _)      () q = q
 
 -- |Given an instantiation of a 'Route' with its value, add the relevant reverse-route information to a 'Request'.
 requestRoute' :: Route a -> a -> Request -> Request
-requestRoute' (Route r) = appEndo . foldFree (\p -> Endo . requestRoutePredicate p) r
+requestRoute' r = appEndo . foldRoute (\p -> Endo . requestRoutePredicate p) r
 
 -- |Apply 'requestRoute'' to 'blankRequest'.
 requestRoute :: Route a -> a -> Request
@@ -188,3 +194,7 @@ infix 1 `RouteAction`
 
 instance Functor (RouteAction a) where
   fmap f (RouteAction r a) = RouteAction r $ f . a
+
+-- |Apply 'requestRoute' to 'actionRoute'.
+requestActionRoute :: RouteAction a b -> a -> Request
+requestActionRoute = requestRoute . actionRoute

@@ -23,9 +23,11 @@ module Web.Route.Invertible.Internal
   , simpleQueryParams
     -- * Route
   , blankRequest
-  , requestRoute'
   , RoutePredicate(..)
   , Route(..)
+  , normRoute
+  , foldRoute
+  , requestRoute'
   ) where
 
 import Web.Route.Invertible.String

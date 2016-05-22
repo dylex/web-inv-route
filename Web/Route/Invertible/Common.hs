@@ -28,7 +28,7 @@ module Web.Route.Invertible.Common
   , param
   , Placeholder
     -- * Reverse routing
-  , requestRoute
+  , requestActionRoute
     -- * Forward routing
   , RouteCase
   , routeCase
