@@ -31,6 +31,7 @@ library
   exposed-modules:     
     Web.Route.Invertible
     Web.Route.Invertible.Common
+    Web.Route.Invertible.Internal
   other-modules:
     Web.Route.Invertible.String
     Web.Route.Invertible.Parameter

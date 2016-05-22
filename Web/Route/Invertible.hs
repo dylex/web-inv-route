@@ -3,20 +3,11 @@ module Web.Route.Invertible
   , normRoute
     -- * Request representation
   , HostString
-  , splitHost
-  , joinHost
   , PathString
   , normalizePath
   , Method(..)
   , IsMethod(..)
-  , QueryParams
   , Request(..)
-  , blankRequest
-    -- * Reverse routing
-  , PlaceholderValue(..)
-  , pathValues
-  , renderPath
-  , requestRoute'
     -- * Forward routing
   , RouteResult(..)
   , lookupRoute
@@ -40,6 +31,7 @@ import Web.Route.Invertible.Result
 import Web.Route.Invertible.Map.Route
 import Web.Route.Invertible.Common
 
--- |Lookup a request in a routing table and transform it using 'routeResult'.
+-- |Lookup a request in a routing table and transform errors to appropriate HTTP status and headers.
+-- It is up to the user to provide an appropriate body (if any).
 routeRequest :: Request -> RouteMap a -> Either (Status, ResponseHeaders) a
 routeRequest q = routeResult . lookupRoute q

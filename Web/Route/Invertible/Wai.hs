@@ -11,10 +11,7 @@ import qualified Network.Wai as Wai
 import Network.HTTP.Types.Header (ResponseHeaders, hContentType)
 import Network.HTTP.Types.Status (Status)
 
-import Web.Route.Invertible.Host
-import Web.Route.Invertible.Method
-import Web.Route.Invertible.Query
-import Web.Route.Invertible.Request
+import Web.Route.Invertible.Internal
 import Web.Route.Invertible.Common
 import Web.Route.Invertible
 
