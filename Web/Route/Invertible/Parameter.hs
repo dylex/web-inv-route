@@ -18,6 +18,7 @@ import Data.Word (Word8, Word16, Word32, Word64)
 import Data.Proxy (Proxy(Proxy))
 import Data.String (IsString(..))
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import qualified Data.Text.Read as T
 import Data.Typeable (Typeable, typeRep)
 import Data.Void (Void, absurd)
@@ -52,6 +53,12 @@ instance Parameter T.Text T.Text where
 instance Parameter BS.ByteString BS.ByteString where
   parseParameter = Just
   renderParameter = id
+instance Parameter T.Text BS.ByteString where
+  parseParameter = Just . TE.encodeUtf8
+  renderParameter = TE.decodeUtf8
+instance Parameter BS.ByteString T.Text where
+  parseParameter = either (const Nothing) Just . TE.decodeUtf8'
+  renderParameter = TE.encodeUtf8
 
 instance Parameter String Char where
   parseParameter [c] = Just c
