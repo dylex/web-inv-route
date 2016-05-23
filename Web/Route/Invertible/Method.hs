@@ -1,5 +1,5 @@
 -- |Representation of HTTP request methods.
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, OverloadedStrings #-}
+{-# LANGUAGE CPP, MultiParamTypeClasses, FlexibleInstances, OverloadedStrings #-}
 module Web.Route.Invertible.Method
   ( Method(..)
   , IsMethod(..)
@@ -9,6 +9,12 @@ import Prelude hiding (lookup)
 
 import Data.ByteString (ByteString)
 import qualified Network.HTTP.Types.Method as H
+#ifdef VERSION_snap_core
+import qualified Snap.Core as Snap
+#endif
+#ifdef VERSION_happstack_server
+import qualified Happstack.Server.Types as HS
+#endif
 
 import Web.Route.Invertible.Parameter
 
@@ -26,6 +32,19 @@ data Method
   | PATCH
   | ExtensionMethod !ByteString
   deriving (Eq, Ord, Read, Show)
+
+instance Parameter ByteString Method where
+  parseParameter = Just . toMethod
+  renderParameter OPTIONS = "OPTIONS"
+  renderParameter GET = "GET"
+  renderParameter HEAD = "HEAD"
+  renderParameter POST = "POST"
+  renderParameter PUT = "PUT"
+  renderParameter DELETE = "DELETE"
+  renderParameter TRACE = "TRACE"
+  renderParameter CONNECT = "CONNECT"
+  renderParameter PATCH = "PATCH"
+  renderParameter (ExtensionMethod m) = m
 
 -- |Any types that represent an HTTP method.
 class IsMethod m where
@@ -60,15 +79,30 @@ instance IsMethod ByteString where
   toMethod "PATCH" = PATCH
   toMethod m = ExtensionMethod m
 
-instance Parameter ByteString Method where
-  parseParameter = Just . toMethod
-  renderParameter OPTIONS = "OPTIONS"
-  renderParameter GET = "GET"
-  renderParameter HEAD = "HEAD"
-  renderParameter POST = "POST"
-  renderParameter PUT = "PUT"
-  renderParameter DELETE = "DELETE"
-  renderParameter TRACE = "TRACE"
-  renderParameter CONNECT = "CONNECT"
-  renderParameter PATCH = "PATCH"
-  renderParameter (ExtensionMethod m) = m
+#ifdef VERSION_snap_core
+instance IsMethod Snap.Method where
+  toMethod Snap.GET = GET
+  toMethod Snap.HEAD = HEAD
+  toMethod Snap.POST = POST
+  toMethod Snap.PUT = PUT
+  toMethod Snap.DELETE = DELETE
+  toMethod Snap.TRACE = TRACE
+  toMethod Snap.OPTIONS = OPTIONS
+  toMethod Snap.CONNECT = CONNECT
+  toMethod Snap.PATCH = PATCH
+  toMethod (Snap.Method m) = ExtensionMethod m
+#endif
+
+#ifdef VERSION_happstack_server
+instance IsMethod HS.Method where
+  toMethod HS.GET = GET
+  toMethod HS.HEAD = HEAD
+  toMethod HS.POST = POST
+  toMethod HS.PUT = PUT
+  toMethod HS.DELETE = DELETE
+  toMethod HS.TRACE = TRACE
+  toMethod HS.OPTIONS = OPTIONS
+  toMethod HS.CONNECT = CONNECT
+  toMethod HS.PATCH = PATCH
+  toMethod (HS.EXTENSION m) = ExtensionMethod m
+#endif

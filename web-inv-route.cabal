@@ -18,14 +18,17 @@ source-repository head
   type: git
   location: https://github.com/dylex/web-inv-route
 
-flag wai
-  description: Provide wai-compatible interfaces
-
 flag uri
   description: Support constructing URIs from routes
 
-flag h
-  description: Support heterogeneous, ordered routes using HList
+flag wai
+  description: Provide WAI-compatible interfaces
+
+flag snap
+  description: Provide Snap-compatible interfaces
+
+flag happstack
+  description: Provide Happstack-compatible interfaces
 
 library
   exposed-modules:     
@@ -72,18 +75,27 @@ library
     unordered-containers,
     text >= 0.10,
     bytestring >= 0.10,
+    case-insensitive,
     http-types >= 0.9,
     invertible > 0.1
   default-language: Haskell2010
   ghc-options: -Wall
 
+  if flag(uri)
+    exposed-modules: Web.Route.Invertible.URI
+    build-depends: network-uri
+
   if flag(wai)
     exposed-modules: Web.Route.Invertible.Wai
     build-depends: wai >= 1
 
-  if flag(uri)
-    exposed-modules: Web.Route.Invertible.URI
-    build-depends: network-uri
+  if flag(snap)
+    exposed-modules: Web.Route.Invertible.Snap
+    build-depends: snap-core >= 0.9
+
+  if flag(happstack)
+    exposed-modules: Web.Route.Invertible.Happstack
+    build-depends: happstack-server >= 7
 
 test-suite tests
   type: exitcode-stdio-1.0

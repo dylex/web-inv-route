@@ -196,6 +196,8 @@ infix 1 `RouteAction`
 instance Functor (RouteAction a) where
   fmap f (RouteAction r a) = RouteAction r $ f . a
 
+-- |'RouteAction' is invariant in its first argument.
+-- Apply a bijection to the routing argument, leaving the action alone.
 mapActionRoute :: (a I.<-> b) -> RouteAction a r -> RouteAction b r
 mapActionRoute f (RouteAction r a) = RouteAction (f >$< r) (a . I.biFrom f)
 
