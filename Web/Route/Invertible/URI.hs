@@ -1,11 +1,18 @@
 {-# LANGUAGE RecordWildCards #-}
 -- |
 -- Conversion between "Network.URI" and routable representations such as 'Request'.
+--
+-- The most useful function here is 'routeActionURI' which performs reverse routing.
+-- If you have an action already defined:
+--
+-- > getThing :: 'RouteAction' Int (IO Response)
+--
+-- Then @routeActionURI getThing 123@ will return the method and URI for that route, filling in the placeholders appropriately, e.g., @(GET, \"\/thing\/123\")@.
 module Web.Route.Invertible.URI
   ( requestURI 
   , uriRequest
   , uriGETRequest
-  , routeURI
+  , routeActionURI
   ) where
 
 import Control.Arrow ((&&&))
@@ -48,6 +55,6 @@ uriRequest m u = Request
 uriGETRequest :: URI -> Request
 uriGETRequest = uriRequest GET
 
--- |Reverse a route to a URI.
-routeURI :: Route a -> a -> (Method, URI)
-routeURI r = (requestMethod &&& requestURI) . requestRoute r
+-- |Reverse a route action to a URI.
+routeActionURI :: RouteAction r a -> r -> (Method, URI)
+routeActionURI r = (requestMethod &&& requestURI) . requestActionRoute r

@@ -1,3 +1,9 @@
+-- |
+-- This provides a generic, framework-agnostic interface to routing.
+-- If you have a 'RouteMap' (see "Web.Route.Invertible.Common"), make a 'Request' to describe an incoming request, and call 'lookupRoute' or 'routeRequest' to find the route.
+-- See 'RouteRequest' for handling errors or the result.
+--
+-- You can also use 'requestActionRoute' to produce a 'Request' from a route endpoint.
 module Web.Route.Invertible
   ( module Web.Route.Invertible.Common
   , normRoute
@@ -13,7 +19,7 @@ module Web.Route.Invertible
   , lookupRoute
   , routeRequest
     -- * Reverse routing
-  , requestRoute
+  , requestActionRoute
   ) where
 
 import Control.Invertible.Monoidal

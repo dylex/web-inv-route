@@ -1,3 +1,7 @@
+-- |
+-- This module exposes more of the inner workings of route construction for extensiblity and direct access.
+-- You may need interfaces like 'IsMethod' or 'QueryParams' to add support for a new web framework, for example.
+-- In particular, functions like 'foldRoute' and 'pathValues' can be used to extract low-level information about individual routes.
 module Web.Route.Invertible.Internal
   ( -- * General
     RouteString(..)
@@ -28,6 +32,7 @@ module Web.Route.Invertible.Internal
   , normRoute
   , foldRoute
   , requestRoute'
+  , requestRoute
   ) where
 
 import Web.Route.Invertible.String
