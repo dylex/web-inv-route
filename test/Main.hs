@@ -60,7 +60,7 @@ rte :: Method -> String -> RouteResult String
 rte m u = lookupRoute (uriRequest m $ fromJust $ parseURI u) things
 
 req :: RouteAction r a -> r -> (Method, String)
-req a = fmap show . routeURI (actionRoute a)
+req a = fmap show . routeActionURI a
 
 tests :: U.Test
 tests = U.test
