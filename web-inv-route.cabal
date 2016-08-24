@@ -6,10 +6,13 @@ description:
   .
   There are four steps/components of this package.
   .
-    1. Route endpoint specification: "Web.Route.Invertible.Common"
-    2. Route map construction: "Web.Route.Invertible.Common"
-    3. Route map lookup: "Web.Route.Invertible" (for the generic interface), "Web.Route.Invertible.Wai", "Web.Route.Invertible.Snap", or "Web.Route.Invertible.Happstack"
-    4. Reverse routing: "Web.Route.Invertible" or "Web.Route.Invertible.URI"
+     1. Route endpoint specification: "Web.Route.Invertible.Common"
+  .
+     2. Route map construction: "Web.Route.Invertible.Common"
+  .
+     3. Route map lookup: "Web.Route.Invertible" (for the generic interface), "Web.Route.Invertible.Wai", "Web.Route.Invertible.Snap", or "Web.Route.Invertible.Happstack"
+  .
+     4. Reverse routing: "Web.Route.Invertible" or "Web.Route.Invertible.URI"
   .
   Most users will just want to import a framework-specific module like "Web.Route.Invertible.Wai" (or the generic "Web.Route.Invertible"), each of which re-exports "Web.Route.Invertible.Common".
   See test/Main.hs for some examples.
