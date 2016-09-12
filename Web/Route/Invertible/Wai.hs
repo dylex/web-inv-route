@@ -1,6 +1,7 @@
 -- |A compatibility routing layer for WAI applications.
 module Web.Route.Invertible.Wai
   ( module Web.Route.Invertible.Common
+  , waiRequest
   , routeWai
   , routeWaiApplicationError
   , routeWaiApplication
@@ -16,6 +17,7 @@ import Web.Route.Invertible.Internal
 import Web.Route.Invertible.Common
 import Web.Route.Invertible
 
+-- |Convert a 'Wai.Request' to a request.
 waiRequest :: Wai.Request -> Request
 waiRequest q = Request
   { requestHost = maybe [] splitHost $ Wai.requestHeaderHost q
@@ -32,7 +34,7 @@ routeWai = routeRequest . waiRequest
 
 -- |Combine a set of applications in a routing map into a single application, calling a custom error handler in case of routing error.
 routeWaiApplicationError :: (Status -> ResponseHeaders -> Wai.Application) -> RouteMap Wai.Application -> Wai.Application
-routeWaiApplicationError e m q r = either (\(s, h) -> e s h q r) (\a -> a q r) $ routeWai q m
+routeWaiApplicationError e m q = either (\(s, h) -> e s h q) (\a -> a q) $ routeWai q m
 
 -- |Combine a set of applications in a routing map into a single application, returning an empty error response in case of routing error.
 routeWaiApplication :: RouteMap Wai.Application -> Wai.Application

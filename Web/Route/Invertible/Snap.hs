@@ -1,6 +1,7 @@
 -- |A compatibility routing layer for Snap applications.
 module Web.Route.Invertible.Snap
   ( module Web.Route.Invertible.Common
+  , snapRequest
   , routeSnap
   , routeMonadSnap
   ) where
@@ -18,6 +19,7 @@ import Web.Route.Invertible.Internal
 import Web.Route.Invertible.Common
 import Web.Route.Invertible
 
+-- |Corvert a 'Snap.Request' to a request.
 snapRequest :: Snap.Request -> Request
 snapRequest q = Request
   { requestHost = splitHost $ Snap.rqServerName q

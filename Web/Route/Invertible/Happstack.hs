@@ -1,6 +1,7 @@
 -- |A compatibility routing layer for Happstack applications.
 module Web.Route.Invertible.Happstack
   ( module Web.Route.Invertible.Common
+  , happstackRequest
   , routeHappstack
   ) where
 
@@ -18,6 +19,7 @@ import Web.Route.Invertible.Internal
 import Web.Route.Invertible.Common
 import Web.Route.Invertible
 
+-- |Convert a 'HS.Request' to a request.
 happstackRequest :: HS.Request -> Request
 happstackRequest q = Request
   { requestHost = maybe [] splitHost $ HS.getHeaderBS (CI.original hHost) q
