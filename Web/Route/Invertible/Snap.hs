@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 -- |A compatibility routing layer for Snap applications.
 module Web.Route.Invertible.Snap
   ( module Web.Route.Invertible.Common
@@ -22,7 +23,12 @@ import Web.Route.Invertible
 -- |Corvert a 'Snap.Request' to a request.
 snapRequest :: Snap.Request -> Request
 snapRequest q = Request
-  { requestHost = splitHost $ Snap.rqServerName q
+  { requestHost = splitHost $
+#if MIN_VERSION_snap_core(1,0,0)
+    Snap.rqHostName q
+#else
+    Snap.rqServerName q
+#endif
   , requestSecure = Snap.rqIsSecure q
   , requestMethod = toMethod $ Snap.rqMethod q
   , requestPath = fst $ decodePath $ Snap.rqPathInfo q
