@@ -30,7 +30,7 @@ postThing = routeMethod POST *< routePath ("thing" *< parameter) `RouteAction` \
   "post thing=" ++ i
 
 anyThingSub :: RouteAction (Int, [Int]) String
-anyThingSub = routePath ("thing" *< parameter >* "sub" >*< manyI parameter) `RouteAction` \(i, l) ->
+anyThingSub = routePath (("thing" *< parameter >* "sub") >*< manyI parameter) `RouteAction` \(i, l) ->
   "thing" ++ show i ++ " sub" ++ concatMap ((' ' :) . show) l
 
 ignoredThing :: RouteAction Int String
