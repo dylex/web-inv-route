@@ -3,6 +3,7 @@ module Web.Route.Invertible.Wai
   ( module Web.Route.Invertible.Common
   , waiRequest
   , routeWai
+  , routeWaiError
   , routeWaiApplicationError
   , routeWaiApplication
   ) where
@@ -33,8 +34,12 @@ routeWai :: Wai.Request -> RouteMap a -> Either (Status, ResponseHeaders) a
 routeWai = routeRequest . waiRequest
 
 -- |Combine a set of applications in a routing map into a single application, calling a custom error handler in case of routing error.
+routeWaiError :: (Status -> ResponseHeaders -> Wai.Request -> a) -> RouteMap (Wai.Request -> a) -> Wai.Request -> a
+routeWaiError e m q = either (\(s, h) -> e s h q) (\a -> a q) $ routeWai q m
+
+-- |Equivalent to 'routeWaiError'.
 routeWaiApplicationError :: (Status -> ResponseHeaders -> Wai.Application) -> RouteMap Wai.Application -> Wai.Application
-routeWaiApplicationError e m q = either (\(s, h) -> e s h q) (\a -> a q) $ routeWai q m
+routeWaiApplicationError = routeWaiError
 
 -- |Combine a set of applications in a routing map into a single application, returning an empty error response in case of routing error.
 routeWaiApplication :: RouteMap Wai.Application -> Wai.Application
