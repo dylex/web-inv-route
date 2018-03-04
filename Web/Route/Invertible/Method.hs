@@ -49,9 +49,11 @@ instance Parameter ByteString Method where
 -- |Any types that represent an HTTP method.
 class IsMethod m where
   toMethod :: m -> Method
+  fromMethod :: Method -> Maybe m
 
 instance IsMethod Method where
   toMethod = id
+  fromMethod = Just
 
 instance IsMethod H.StdMethod where
   toMethod H.GET = GET
@@ -63,9 +65,21 @@ instance IsMethod H.StdMethod where
   toMethod H.CONNECT = CONNECT
   toMethod H.OPTIONS = OPTIONS
   toMethod H.PATCH = PATCH
+  fromMethod GET = Just H.GET
+  fromMethod POST = Just H.POST
+  fromMethod HEAD = Just H.HEAD
+  fromMethod PUT = Just H.PUT
+  fromMethod DELETE = Just H.DELETE
+  fromMethod TRACE = Just H.TRACE
+  fromMethod CONNECT = Just H.CONNECT
+  fromMethod OPTIONS = Just H.OPTIONS
+  fromMethod PATCH = Just H.PATCH
+  fromMethod _ = Nothing
 
 instance IsMethod (Either ByteString H.StdMethod) where
   toMethod = either ExtensionMethod toMethod
+  fromMethod (ExtensionMethod e) = Just $ Left e
+  fromMethod m = Right <$> fromMethod m
 
 instance IsMethod ByteString where
   toMethod "OPTIONS" = OPTIONS
@@ -78,6 +92,7 @@ instance IsMethod ByteString where
   toMethod "CONNECT" = CONNECT
   toMethod "PATCH" = PATCH
   toMethod m = ExtensionMethod m
+  fromMethod = Just . renderParameter
 
 #ifdef VERSION_snap_core
 instance IsMethod Snap.Method where
@@ -91,6 +106,16 @@ instance IsMethod Snap.Method where
   toMethod Snap.CONNECT = CONNECT
   toMethod Snap.PATCH = PATCH
   toMethod (Snap.Method m) = ExtensionMethod m
+  fromMethod GET = Just Snap.GET
+  fromMethod HEAD = Just Snap.HEAD
+  fromMethod POST = Just Snap.POST
+  fromMethod PUT = Just Snap.PUT
+  fromMethod DELETE = Just Snap.DELETE
+  fromMethod TRACE = Just Snap.TRACE
+  fromMethod OPTIONS = Just Snap.OPTIONS
+  fromMethod CONNECT = Just Snap.CONNECT
+  fromMethod PATCH = Just Snap.PATCH
+  fromMethod (ExtensionMethod m) = Just $ Snap.Method m
 #endif
 
 #ifdef VERSION_happstack_server
@@ -105,4 +130,14 @@ instance IsMethod HS.Method where
   toMethod HS.CONNECT = CONNECT
   toMethod HS.PATCH = PATCH
   toMethod (HS.EXTENSION m) = ExtensionMethod m
+  fromMethod GET = Just HS.GET
+  fromMethod HEAD = Just HS.HEAD
+  fromMethod POST = Just HS.POST
+  fromMethod PUT = Just HS.PUT
+  fromMethod DELETE = Just HS.DELETE
+  fromMethod TRACE = Just HS.TRACE
+  fromMethod OPTIONS = Just HS.OPTIONS
+  fromMethod CONNECT = Just HS.CONNECT
+  fromMethod PATCH = Just HS.PATCH
+  fromMethod (ExtensionMethod m) = Just $ HS.EXTENSION m
 #endif
