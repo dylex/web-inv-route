@@ -1,6 +1,6 @@
 name:                web-inv-route
 version:             0.1.2
-synopsis:            Composable, reversible, efficient web routing based on invertible invariants and bijections
+synopsis:            Composable, reversible, efficient web routing using invertible invariants and bijections
 description:
   Utilities to route HTTP requests, mainly focused on path components.  Routes are specified using bijections and invariant functors, allowing run-time composition (routes can be distributed across modules), reverse and forward routing derived from the same specification, and O(log n) lookups.
   .
@@ -17,9 +17,10 @@ description:
   Most users will just want to import a framework-specific module like "Web.Route.Invertible.Wai" (or the generic "Web.Route.Invertible"), each of which re-exports "Web.Route.Invertible.Common".
   See test/Main.hs for some examples.
 license:             BSD3
+license-file:        LICENSE
 author:              Dylan Simon
 maintainer:          dylan@dylex.net
-copyright:           2016
+copyright:           2016-2018
 category:            Web
 build-type:          Simple
 cabal-version:       >=1.20
