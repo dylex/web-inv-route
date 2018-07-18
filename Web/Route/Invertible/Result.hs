@@ -5,6 +5,7 @@ module Web.Route.Invertible.Result
   ) where
 
 import qualified Data.ByteString.Char8 as BSC
+import Data.Semigroup (Semigroup((<>)))
 import Data.Typeable (Typeable)
 import Network.HTTP.Types.Header (ResponseHeaders, hAllow)
 import Network.HTTP.Types.Status (Status, notFound404, methodNotAllowed405, internalServerError500)
@@ -26,15 +27,18 @@ instance Functor RouteResult where
   fmap f (RouteResult x) = RouteResult (f x)
   fmap _ MultipleRoutes = MultipleRoutes
 
+instance Semigroup (RouteResult a) where
+  RouteNotFound <> r = r
+  AllowedMethods _ <> r@(RouteResult _) = r
+  AllowedMethods a <> AllowedMethods b = AllowedMethods $ unionSorted a b
+  r@(RouteResult _) <> AllowedMethods _ = r
+  MultipleRoutes <> _ = MultipleRoutes
+  r <> RouteNotFound = r
+  _ <> _ = MultipleRoutes
+
 instance Monoid (RouteResult a) where
   mempty = RouteNotFound
-  mappend RouteNotFound r = r
-  mappend (AllowedMethods _) r@(RouteResult _) = r
-  mappend (AllowedMethods a) (AllowedMethods b) = AllowedMethods $ unionSorted a b
-  mappend r@(RouteResult _) (AllowedMethods _) = r
-  mappend MultipleRoutes _ = MultipleRoutes
-  mappend r RouteNotFound = r
-  mappend _ _ = MultipleRoutes
+  mappend = (<>)
 
 unionSorted :: Ord a => [a] -> [a] -> [a]
 unionSorted al@(a:ar) bl@(b:br) = case compare a b of

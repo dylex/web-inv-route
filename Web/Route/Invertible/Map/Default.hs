@@ -10,7 +10,7 @@ module Web.Route.Invertible.Map.Default
   ) where
 
 import Control.Applicative ((<|>))
-import Data.Monoid ((<>))
+import Data.Semigroup (Semigroup((<>)))
 
 -- |A map that also provides a default value, for when a key is not found in the underlying map, parameterized over the type of the map.
 data DefaultMap m v = DefaultMap
@@ -21,9 +21,12 @@ data DefaultMap m v = DefaultMap
 instance Functor m => Functor (DefaultMap m) where
   fmap f (DefaultMap m d) = DefaultMap (fmap f m) (fmap f d)
 
+instance (Semigroup v, Semigroup (m v)) => Semigroup (DefaultMap m v) where
+  DefaultMap m1 d1 <> DefaultMap m2 d2 = DefaultMap (m1 <> m2) (d1 <> d2)
+
 instance (Monoid v, Monoid (m v)) => Monoid (DefaultMap m v) where
   mempty = DefaultMap mempty Nothing
-  mappend (DefaultMap m1 d1) (DefaultMap m2 d2) = DefaultMap (m1 <> m2) (d1 <> d2)
+  mappend (DefaultMap m1 d1) (DefaultMap m2 d2) = DefaultMap (mappend m1 m2) (mappend d1 d2)
 
 -- |A simple map with no default value.
 defaultingMap :: m v -> DefaultMap m v

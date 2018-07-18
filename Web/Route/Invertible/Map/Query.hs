@@ -8,7 +8,7 @@ module Web.Route.Invertible.Map.Query
   ) where
 
 import qualified Data.HashMap.Lazy as HM
-import Data.Monoid ((<>))
+import Data.Semigroup (Semigroup((<>)))
 
 import Web.Route.Invertible.Placeholder
 import Web.Route.Invertible.Map.Placeholder
@@ -26,15 +26,24 @@ instance Functor QueryMap where
   fmap f (QueryFinal v) = QueryFinal (fmap f v)
   fmap f (QueryMap n m d) = QueryMap n (fmap (fmap f) m) (fmap f d)
 
-instance Monoid a => Monoid (QueryMap a) where
-  mempty = QueryFinal mempty
-  mappend (QueryFinal a) (QueryFinal b) = QueryFinal (mappend a b)
-  mappend q@(QueryFinal _) (QueryMap n m d) = QueryMap n m (q <> d)
-  mappend (QueryMap n m d) q@(QueryFinal _) = QueryMap n m (d <> q)
-  mappend q1@(QueryMap n1 m1 d1) q2@(QueryMap n2 m2 d2) = case compare n1 n2 of
+instance Semigroup a => Semigroup (QueryMap a) where
+  QueryFinal a <> QueryFinal b = QueryFinal (a <> b)
+  q@(QueryFinal _) <> (QueryMap n m d) = QueryMap n m (q <> d)
+  (QueryMap n m d) <> q@(QueryFinal _) = QueryMap n m (d <> q)
+  q1@(QueryMap n1 m1 d1) <> q2@(QueryMap n2 m2 d2) = case compare n1 n2 of
     LT -> QueryMap n1 m1 (d1 <> q2)
     EQ -> QueryMap n1 (m1 <> m2) (d1 <> d2)
     GT -> QueryMap n2 m2 (q1 <> d2)
+
+instance Monoid a => Monoid (QueryMap a) where
+  mempty = QueryFinal mempty
+  mappend (QueryFinal a) (QueryFinal b) = QueryFinal (mappend a b)
+  mappend q@(QueryFinal _) (QueryMap n m d) = QueryMap n m (mappend q d)
+  mappend (QueryMap n m d) q@(QueryFinal _) = QueryMap n m (mappend d q)
+  mappend q1@(QueryMap n1 m1 d1) q2@(QueryMap n2 m2 d2) = case compare n1 n2 of
+    LT -> QueryMap n1 m1 (mappend d1 q2)
+    EQ -> QueryMap n1 (mappend m1 m2) (mappend d1 d2)
+    GT -> QueryMap n2 m2 (mappend q1 d2)
 
 -- |The empty query map.
 emptyQueryMap :: QueryMap a

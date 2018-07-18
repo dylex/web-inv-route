@@ -33,6 +33,7 @@ import Control.Applicative (Alternative(..))
 import Control.Invertible.Monoidal.Free
 import Control.Monad (MonadPlus(..))
 import Control.Monad.Trans.State (evalState)
+import Data.Semigroup (Semigroup((<>)))
 
 import Web.Route.Invertible.String
 import Web.Route.Invertible.Placeholder
@@ -50,6 +51,9 @@ data SequenceMap s a = SequenceMap
 unionSequenceWith :: RouteString s => (Maybe a -> Maybe a -> Maybe a) -> SequenceMap s a -> SequenceMap s a -> SequenceMap s a
 unionSequenceWith f (SequenceMap m1 v1) (SequenceMap m2 v2) =
   SequenceMap (unionPlaceholderWith (unionSequenceWith f) m1 m2) (f v1 v2)
+
+instance (RouteString s, Semigroup a) => Semigroup (SequenceMap s a) where
+  (<>) = unionSequenceWith (<>)
 
 -- |Values are combined using 'mappend'.
 instance (RouteString s, Monoid a) => Monoid (SequenceMap s a) where

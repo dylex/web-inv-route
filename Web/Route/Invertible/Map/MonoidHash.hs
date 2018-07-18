@@ -13,10 +13,14 @@ import Prelude hiding (lookup)
 import Data.Foldable (fold)
 import Data.Hashable (Hashable)
 import qualified Data.HashMap.Strict as M
+import Data.Semigroup (Semigroup((<>)))
 
 -- |A specialized version of 'M.HashMap'.
 newtype MonoidHashMap k a = MonoidHashMap { monoidHashMap :: M.HashMap k a }
   deriving (Eq, Foldable, Show)
+
+instance (Eq k, Hashable k, Semigroup a) => Semigroup (MonoidHashMap k a) where
+  MonoidHashMap a <> MonoidHashMap b = MonoidHashMap $ M.unionWith (<>) a b
 
 -- |'mappend' is equivalent to @'M.unionWith' 'mappend'@.
 instance (Eq k, Hashable k, Monoid a) => Monoid (MonoidHashMap k a) where

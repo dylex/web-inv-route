@@ -10,6 +10,7 @@ module Web.Route.Invertible.Monoid.Exactly
 
 import Control.Applicative (Alternative(..))
 import Control.Monad (MonadPlus(..))
+import Data.Semigroup (Semigroup((<>)))
 
 -- |A 'Maybe'-like monoid that only allows one value, overflowing into 'Conflict' when more than one 'Exactly' are combined (with '<|>' or 'Data.Monoid.<>', which thus function identically).
 data Exactly a
@@ -45,6 +46,9 @@ instance Monad Exactly where
   _ >> _ = Blank
   fail _ = Conflict
 instance MonadPlus Exactly
+
+instance Semigroup (Exactly a) where
+  (<>) = (<|>)
 
 -- |Combines using the 'Alternative' instance, similar to an @'Data.Monoid.Alt' 'Maybe'@.
 instance Monoid (Exactly a) where

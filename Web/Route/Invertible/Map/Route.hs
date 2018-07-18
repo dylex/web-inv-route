@@ -20,7 +20,7 @@ import Control.Monad.Trans.State (evalState)
 import Data.Dynamic (Dynamic, toDyn)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
-import Data.Monoid ((<>))
+import Data.Semigroup (Semigroup((<>)))
 
 import Web.Route.Invertible.String
 import Web.Route.Invertible.Sequence
@@ -59,35 +59,38 @@ data RouteMapT m a
   | RouteMapExactly   !(Exactly (m a))
   deriving (Show)
 
+instance Semigroup (RouteMapT m a) where
+  m <> RouteMapExactly Blank = m
+  RouteMapExactly Blank <> m = m
+  RouteMapHost     a <> RouteMapHost     b = RouteMapHost     (a <> b)
+  RouteMapSecure   a <> RouteMapSecure   b = RouteMapSecure   (a <> b)
+  RouteMapPath     a <> RouteMapPath     b = RouteMapPath     (a <> b)
+  RouteMapMethod   a <> RouteMapMethod   b = RouteMapMethod   (a <> b)
+  RouteMapQuery    a <> RouteMapQuery    b = RouteMapQuery    (a <> b)
+  RouteMapAccept   a <> RouteMapAccept   b = RouteMapAccept   (a <> b)
+  RouteMapCustom   a <> RouteMapCustom   b = RouteMapCustom   (a <> b)
+  RouteMapPriority a <> RouteMapPriority b = RouteMapPriority (a <> b)
+  RouteMapExactly  a <> RouteMapExactly  b = RouteMapExactly  (a <> b)
+  a@     (RouteMapHost     _) <> b = a <> RouteMapHost (defaultingValue b)
+  a <> b@(RouteMapHost     _)      =      RouteMapHost (defaultingValue a) <> b
+  a@     (RouteMapSecure   _) <> b = a <> RouteMapSecure (singletonBool Nothing b)
+  a <> b@(RouteMapSecure   _)      =      RouteMapSecure (singletonBool Nothing a) <> b
+  a@     (RouteMapPath     _) <> b = a <> RouteMapPath   (defaultingValue b)
+  a <> b@(RouteMapPath     _)      =      RouteMapPath   (defaultingValue a) <> b
+  a@     (RouteMapMethod   _) <> b = a <> RouteMapMethod (defaultingValue b)
+  a <> b@(RouteMapMethod   _)      =      RouteMapMethod (defaultingValue a) <> b
+  a@     (RouteMapQuery    _) <> b = a <> RouteMapQuery  (defaultQueryMap b)
+  a <> b@(RouteMapQuery    _)      =      RouteMapQuery  (defaultQueryMap a) <> b
+  a@     (RouteMapAccept   _) <> b = a <> RouteMapAccept (defaultingValue b)
+  a <> b@(RouteMapAccept   _)      =      RouteMapAccept (defaultingValue a) <> b
+  a@     (RouteMapCustom   _) <> b = a <> RouteMapCustom (constantValue b)
+  a <> b@(RouteMapCustom   _)      =      RouteMapCustom (constantValue a) <> b
+  a@     (RouteMapPriority _) <> b = a <> RouteMapPriority (Prioritized 0 b)
+  a <> b@(RouteMapPriority _)      =      RouteMapPriority (Prioritized 0 a) <> b
+
 instance Monoid (RouteMapT m a) where
   mempty = RouteMapExactly Blank
-  mappend m (RouteMapExactly Blank) = m
-  mappend (RouteMapExactly Blank) m = m
-  mappend (RouteMapHost     a) (RouteMapHost     b) = RouteMapHost     (mappend a b)
-  mappend (RouteMapSecure   a) (RouteMapSecure   b) = RouteMapSecure   (mappend a b)
-  mappend (RouteMapPath     a) (RouteMapPath     b) = RouteMapPath     (mappend a b)
-  mappend (RouteMapMethod   a) (RouteMapMethod   b) = RouteMapMethod   (mappend a b)
-  mappend (RouteMapQuery    a) (RouteMapQuery    b) = RouteMapQuery    (mappend a b)
-  mappend (RouteMapAccept   a) (RouteMapAccept   b) = RouteMapAccept   (mappend a b)
-  mappend (RouteMapCustom   a) (RouteMapCustom   b) = RouteMapCustom   (mappend a b)
-  mappend (RouteMapPriority a) (RouteMapPriority b) = RouteMapPriority (mappend a b)
-  mappend (RouteMapExactly  a) (RouteMapExactly  b) = RouteMapExactly  (mappend a b)
-  mappend   a@(RouteMapHost     _) b = mappend a (RouteMapHost (defaultingValue b))
-  mappend a b@(RouteMapHost     _)   = mappend   (RouteMapHost (defaultingValue a)) b
-  mappend   a@(RouteMapSecure   _) b = mappend a (RouteMapSecure (singletonBool Nothing b))
-  mappend a b@(RouteMapSecure   _)   = mappend   (RouteMapSecure (singletonBool Nothing a)) b
-  mappend   a@(RouteMapPath     _) b = mappend a (RouteMapPath   (defaultingValue b))
-  mappend a b@(RouteMapPath     _)   = mappend   (RouteMapPath   (defaultingValue a)) b
-  mappend   a@(RouteMapMethod   _) b = mappend a (RouteMapMethod (defaultingValue b))
-  mappend a b@(RouteMapMethod   _)   = mappend   (RouteMapMethod (defaultingValue a)) b
-  mappend   a@(RouteMapQuery    _) b = mappend a (RouteMapQuery  (defaultQueryMap b))
-  mappend a b@(RouteMapQuery    _)   = mappend   (RouteMapQuery  (defaultQueryMap a)) b
-  mappend   a@(RouteMapAccept   _) b = mappend a (RouteMapAccept (defaultingValue b))
-  mappend a b@(RouteMapAccept   _)   = mappend   (RouteMapAccept (defaultingValue a)) b
-  mappend   a@(RouteMapCustom   _) b = mappend a (RouteMapCustom (constantValue b))
-  mappend a b@(RouteMapCustom   _)   = mappend   (RouteMapCustom (constantValue a)) b
-  mappend   a@(RouteMapPriority _) b = mappend a (RouteMapPriority (Prioritized 0 b)) 
-  mappend a b@(RouteMapPriority _)   = mappend   (RouteMapPriority (Prioritized 0 a)) b 
+  mappend = (<>)
 
 exactlyMap :: m a -> RouteMapT m a
 exactlyMap = RouteMapExactly . Exactly

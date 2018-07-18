@@ -12,10 +12,14 @@ import Prelude hiding (lookup)
 
 import Data.Foldable (fold)
 import qualified Data.Map.Strict as M
+import Data.Semigroup (Semigroup((<>)))
 
 -- |A specialized version of 'M.Map'.
 newtype MonoidMap k a = MonoidMap { monoidMap :: M.Map k a }
   deriving (Eq, Foldable, Show)
+
+instance (Ord k, Semigroup a) => Semigroup (MonoidMap k a) where
+  MonoidMap a <> MonoidMap b = MonoidMap $ M.unionWith (<>) a b
 
 -- |'mappend' is equivalent to @'M.unionWith' 'mappend'@.
 instance (Ord k, Monoid a) => Monoid (MonoidMap k a) where

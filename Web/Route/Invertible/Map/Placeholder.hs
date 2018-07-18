@@ -18,6 +18,7 @@ import Control.Arrow (first)
 import Data.Dynamic (Dynamic)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as M
+import Data.Semigroup (Semigroup((<>)))
 
 import Web.Route.Invertible.String
 import Web.Route.Invertible.Placeholder
@@ -32,6 +33,9 @@ data PlaceholderMap s a = PlaceholderMap
   { placeholderMapFixed :: !(HM.HashMap s a)
   , placeholderMapParameter :: !(ParameterTypeMap s a)
   } deriving (Eq, Show)
+
+instance (RouteString s, Semigroup a) => Semigroup (PlaceholderMap s a) where
+  (<>) = unionPlaceholderWith (<>)
 
 -- |Values are combined using 'mappend'.
 instance (RouteString s, Monoid a) => Monoid (PlaceholderMap s a) where

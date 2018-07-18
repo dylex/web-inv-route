@@ -6,10 +6,11 @@ module Web.Route.Invertible.Map.Custom
   ) where
 
 import Data.Maybe (mapMaybe)
+import Data.Semigroup (Semigroup)
 import Text.Show.Functions ()
 
 newtype CustomMap q a b = CustomMap [(q -> Maybe a, b)]
-  deriving (Show, Monoid)
+  deriving (Show, Semigroup, Monoid)
 
 instance Functor (CustomMap q a) where
   fmap f (CustomMap l) = CustomMap $ map (fmap f) l

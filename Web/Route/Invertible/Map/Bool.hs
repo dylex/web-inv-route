@@ -7,7 +7,7 @@ module Web.Route.Invertible.Map.Bool
   , lookupBool
   ) where
 
-import Data.Monoid ((<>))
+import Data.Semigroup (Semigroup((<>)))
 
 -- |A trivial, flat representation of a 'Bool'-keyed map.
 -- Value existance (but not the values themselves) is strict.
@@ -19,9 +19,12 @@ data BoolMap v = BoolMap
 instance Functor BoolMap where
   fmap f (BoolMap a b) = BoolMap (fmap f a) (fmap f b)
 
+instance (Semigroup v) => Semigroup (BoolMap v) where
+  BoolMap a1 b1 <> BoolMap a2 b2 = BoolMap (a1 <> a2) (b1 <> b2)
+
 instance (Monoid v) => Monoid (BoolMap v) where
   mempty = emptyBoolMap
-  mappend (BoolMap a1 b1) (BoolMap a2 b2) = BoolMap (a1 <> a2) (b1 <> b2)
+  mappend (BoolMap a1 b1) (BoolMap a2 b2) = BoolMap (mappend a1 a2) (mappend b1 b2)
 
 -- |The empty map.
 emptyBoolMap :: BoolMap a
