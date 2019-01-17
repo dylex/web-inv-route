@@ -24,11 +24,12 @@ module Web.Route.Invertible.Sequence
   , reverseSequence
   ) where
 
-import Control.Invertible.Monoidal
-import Control.Invertible.Monoidal.Free
-import Control.Monad (MonadPlus, mzero, guard)
+import           Control.Invertible.Monoidal
+import           Control.Invertible.Monoidal.Free
+import           Control.Monad (MonadPlus, mzero, guard)
+import           Control.Monad.Fail (MonadFail)
 import qualified Data.Invertible as I
-import Data.String (IsString(..))
+import           Data.String (IsString(..))
 
 import Web.Route.Invertible.Parameter
 import Web.Route.Invertible.Placeholder
@@ -80,7 +81,7 @@ readsSequence = parseFree f . freeSequence where
   f PlaceholderParameter a = maybe mzero return (parseParameter a)
 
 -- |Parse a sequence into possible values.  Can return all possible values as a list or (usually) a single value as 'Maybe'.
-parseSequence :: (MonadPlus m, Eq s) => Sequence s a -> [s] -> m a
+parseSequence :: (MonadPlus m, MonadFail m, Eq s) => Sequence s a -> [s] -> m a
 parseSequence p l = do
   (a, []) <- readsSequence p l
   return a
