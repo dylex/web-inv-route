@@ -1,5 +1,6 @@
 -- |
 -- A monoid that only admits a single value.
+{-# LANGUAGE CPP #-}
 module Web.Route.Invertible.Monoid.Exactly
   ( Exactly(..)
   , maybeToExactly
@@ -44,6 +45,9 @@ instance Monad Exactly where
   Conflict >> _ = Conflict
   _ >> Conflict = Conflict
   _ >> _ = Blank
+#if MIN_VERSION_base(4,13,0)
+instance MonadFail Exactly where
+#endif
   fail _ = Conflict
 instance MonadPlus Exactly
 

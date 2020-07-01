@@ -1,5 +1,5 @@
 name:                web-inv-route
-version:             0.1.2.2
+version:             0.1.2.3
 synopsis:            Composable, reversible, efficient web routing using invertible invariants and bijections
 description:
   Utilities to route HTTP requests, mainly focused on path components.  Routes are specified using bijections and invariant functors, allowing run-time composition (routes can be distributed across modules), reverse and forward routing derived from the same specification, and O(log n) lookups.
