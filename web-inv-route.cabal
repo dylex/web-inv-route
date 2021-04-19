@@ -46,6 +46,7 @@ library
     Web.Route.Invertible
     Web.Route.Invertible.Common
     Web.Route.Invertible.Internal
+    Web.Route.Invertible.Render
   other-modules:
     Web.Route.Invertible.String
     Web.Route.Invertible.Parameter
