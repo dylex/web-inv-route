@@ -20,6 +20,8 @@ module Web.Route.Invertible
   , routeRequest
     -- * Reverse routing
   , requestActionRoute
+  , (!:?)
+  , requestBoundRoute
   ) where
 
 import Control.Invertible.Monoidal

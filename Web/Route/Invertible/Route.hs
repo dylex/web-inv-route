@@ -19,9 +19,12 @@ module Web.Route.Invertible.Route
   , foldRoute
   , requestRoute'
   , requestRoute
+  , BoundRoute(..)
+  , requestBoundRoute
   , RouteAction(..)
   , mapActionRoute
   , requestActionRoute
+  , (!:?)
   ) where
 
 import Control.Invertible.Monoidal
@@ -185,6 +188,15 @@ requestRoute' r = appEndo . foldRoute (\p -> Endo . requestRoutePredicate p) r
 requestRoute :: Route a -> a -> Request
 requestRoute r a = requestRoute' r a blankRequest
 
+-- |A route bound with its parameter.  Useful for passing concerete specific routes without type variables.
+data BoundRoute = forall a. Route a :? a
+
+infix 1 :?
+
+-- |Apply 'requestRoute' on a 'BoundRoute'.
+requestBoundRoute :: BoundRoute -> Request
+requestBoundRoute (r :? a) = requestRoute r a
+
 -- |Specify the action to take for a given route, often used as an infix operator between the route specification and the function used to produce the result (which usually generates the HTTP response, but could be anything).
 data RouteAction a b = RouteAction
   { actionRoute :: !(Route a)
@@ -204,3 +216,9 @@ mapActionRoute f (RouteAction r a) = RouteAction (f >$< r) (a . I.biFrom f)
 -- |Apply 'requestRoute' to 'actionRoute'.
 requestActionRoute :: RouteAction a b -> a -> Request
 requestActionRoute = requestRoute . actionRoute
+
+-- |Combine '(:?)' and 'actionRoute'.
+(!:?) :: RouteAction a b -> a -> BoundRoute
+(!:?) = (:?) . actionRoute
+
+infix 1 !:?

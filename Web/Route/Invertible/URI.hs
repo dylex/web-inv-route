@@ -13,6 +13,7 @@ module Web.Route.Invertible.URI
   , uriRequest
   , uriGETRequest
   , routeActionURI
+  , boundRouteURI
   ) where
 
 import Control.Arrow ((&&&))
@@ -58,3 +59,7 @@ uriGETRequest = uriRequest GET
 -- |Reverse a route action to a URI.
 routeActionURI :: RouteAction r a -> r -> (Method, URI)
 routeActionURI r = (requestMethod &&& requestURI) . requestActionRoute r
+
+-- |Reverse a bound route action to a URI.
+boundRouteURI :: BoundRoute -> (Method, URI)
+boundRouteURI = (requestMethod &&& requestURI) . requestBoundRoute

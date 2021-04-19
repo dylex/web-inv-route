@@ -56,6 +56,7 @@ module Web.Route.Invertible.Common
   , routeAccepts
   , routeCustom
   , routePriority
+  , BoundRoute(..)
   , RouteAction(..)
   , mapActionRoute
     -- ** Supporting types

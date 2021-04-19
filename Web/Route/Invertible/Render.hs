@@ -38,6 +38,6 @@ renderUrlRequestBuilder r q =
   B.string8 (if requestSecure r then "https:" else "http:") <> renderRequestBuilder r q
 
 -- |A 'Text.Hamlet.Render' function, suitable for passing to a @'Text.Hamlet.HtmlUrl' (RouteAction a b, a)@ template.
-renderHamletUrl :: (RouteAction a b, a) -> [(T.Text, T.Text)] -> T.Text
-renderHamletUrl (r, a) q = TE.decodeUtf8 $ BSL.toStrict $ B.toLazyByteString
-  $ renderRequestBuilder (requestActionRoute r a) $ queryTextToQuery $ map (second Just) q
+renderHamletUrl :: BoundRoute -> [(T.Text, T.Text)] -> T.Text
+renderHamletUrl (r :? a) q = TE.decodeUtf8 $ BSL.toStrict $ B.toLazyByteString
+  $ renderRequestBuilder (requestRoute r a) $ queryTextToQuery $ map (second Just) q
