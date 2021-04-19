@@ -18,7 +18,6 @@ import Control.Arrow (first)
 import Data.Dynamic (Dynamic)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as M
-import Data.Semigroup (Semigroup((<>)))
 
 import Web.Route.Invertible.String
 import Web.Route.Invertible.Placeholder

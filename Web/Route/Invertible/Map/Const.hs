@@ -12,8 +12,6 @@ module Web.Route.Invertible.Map.Const
   , flattenConstDefaultMap
   ) where
 
-import Data.Semigroup (Semigroup((<>)))
-
 import Web.Route.Invertible.Map.Default
 
 -- |A monoid map where every key (additionally) maps to the same constant value, parameterized over the type of the map.

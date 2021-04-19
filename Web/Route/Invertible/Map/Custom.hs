@@ -6,7 +6,6 @@ module Web.Route.Invertible.Map.Custom
   ) where
 
 import Data.Maybe (mapMaybe)
-import Data.Semigroup (Semigroup)
 import Text.Show.Functions ()
 
 newtype CustomMap q a b = CustomMap [(q -> Maybe a, b)]

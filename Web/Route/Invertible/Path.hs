@@ -19,7 +19,6 @@ import Prelude hiding (lookup)
 
 import Control.Invertible.Monoidal
 import qualified Data.ByteString.Builder as B
-import Data.Monoid ((<>))
 import qualified Data.Invertible as I
 import Data.String (IsString(..))
 import qualified Data.Text as T

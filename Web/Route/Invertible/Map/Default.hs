@@ -10,7 +10,6 @@ module Web.Route.Invertible.Map.Default
   ) where
 
 import Control.Applicative ((<|>))
-import Data.Semigroup (Semigroup((<>)))
 
 -- |A map that also provides a default value, for when a key is not found in the underlying map, parameterized over the type of the map.
 data DefaultMap m v = DefaultMap

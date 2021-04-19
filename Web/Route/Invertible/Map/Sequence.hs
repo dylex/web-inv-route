@@ -33,7 +33,6 @@ import Control.Applicative (Alternative(..))
 import Control.Invertible.Monoidal.Free
 import Control.Monad (MonadPlus(..))
 import Control.Monad.Trans.State (evalState)
-import Data.Semigroup (Semigroup((<>)))
 
 import Web.Route.Invertible.String
 import Web.Route.Invertible.Placeholder

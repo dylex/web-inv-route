@@ -27,7 +27,6 @@ module Web.Route.Invertible.Sequence
 import           Control.Invertible.Monoidal
 import           Control.Invertible.Monoidal.Free
 import           Control.Monad (MonadPlus, mzero, guard)
-import           Control.Monad.Fail (MonadFail)
 import qualified Data.Invertible as I
 import           Data.String (IsString(..))
 

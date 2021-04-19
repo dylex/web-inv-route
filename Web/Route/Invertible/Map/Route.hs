@@ -20,7 +20,6 @@ import Control.Monad.Trans.State (evalState)
 import Data.Dynamic (Dynamic, toDyn)
 import qualified Data.HashMap.Strict as HM
 import qualified Data.Map.Strict as Map
-import Data.Semigroup (Semigroup((<>)))
 
 import Web.Route.Invertible.String
 import Web.Route.Invertible.Sequence

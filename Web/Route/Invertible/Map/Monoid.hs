@@ -12,7 +12,6 @@ import Prelude hiding (lookup)
 
 import Data.Foldable (fold)
 import qualified Data.Map.Strict as M
-import Data.Semigroup (Semigroup((<>)))
 
 -- |A specialized version of 'M.Map'.
 newtype MonoidMap k a = MonoidMap { monoidMap :: M.Map k a }

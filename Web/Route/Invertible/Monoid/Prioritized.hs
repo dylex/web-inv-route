@@ -4,8 +4,6 @@ module Web.Route.Invertible.Monoid.Prioritized
   ( Prioritized(..)
   ) where
 
-import Data.Semigroup (Semigroup((<>)))
-
 -- |A trival monoid allowing each item to be given a priority when combining.
 data Prioritized a = Prioritized
   { priority :: !Int -- ^ The priority this value, where larger numeric values have higher priority and take precedence over lower priorities.

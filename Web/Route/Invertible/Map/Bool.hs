@@ -7,8 +7,6 @@ module Web.Route.Invertible.Map.Bool
   , lookupBool
   ) where
 
-import Data.Semigroup (Semigroup((<>)))
-
 -- |A trivial, flat representation of a 'Bool'-keyed map.
 -- Value existance (but not the values themselves) is strict.
 data BoolMap v = BoolMap

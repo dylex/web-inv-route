@@ -13,7 +13,6 @@ import Prelude hiding (lookup)
 import Data.Foldable (fold)
 import Data.Hashable (Hashable)
 import qualified Data.HashMap.Strict as M
-import Data.Semigroup (Semigroup((<>)))
 
 -- |A specialized version of 'M.HashMap'.
 newtype MonoidHashMap k a = MonoidHashMap { monoidHashMap :: M.HashMap k a }

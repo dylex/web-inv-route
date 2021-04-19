@@ -5,7 +5,6 @@ module Web.Route.Invertible.Result
   ) where
 
 import qualified Data.ByteString.Char8 as BSC
-import Data.Semigroup (Semigroup((<>)))
 import Data.Typeable (Typeable)
 import Network.HTTP.Types.Header (ResponseHeaders, hAllow)
 import Network.HTTP.Types.Status (Status, notFound404, methodNotAllowed405, internalServerError500)

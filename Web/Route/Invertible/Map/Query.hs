@@ -8,7 +8,6 @@ module Web.Route.Invertible.Map.Query
   ) where
 
 import qualified Data.HashMap.Lazy as HM
-import Data.Semigroup (Semigroup((<>)))
 
 import Web.Route.Invertible.Placeholder
 import Web.Route.Invertible.Map.Placeholder
