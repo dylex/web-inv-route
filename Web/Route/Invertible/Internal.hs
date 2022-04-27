@@ -29,6 +29,7 @@ module Web.Route.Invertible.Internal
   , blankRequest
   , RoutePredicate(..)
   , Route(..)
+  , requestRoutePredicate
   , normRoute
   , foldRoute
   , requestRoute'
