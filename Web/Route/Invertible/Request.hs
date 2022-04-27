@@ -32,3 +32,20 @@ blankRequest = Request
   , requestQuery = mempty
   , requestContentType = mempty
   }
+
+-- |Merge two requests, where non-blank values in the second argument take precedence.
+instance Semigroup Request where
+  a <> b = Request
+    { requestSecure = m requestSecure
+    , requestHost = m requestHost
+    , requestMethod = m requestMethod
+    , requestPath = m requestPath
+    , requestQuery = m requestQuery
+    , requestContentType = m requestContentType
+    } where
+    m f
+      | f b == f blankRequest = f a
+      | otherwise = f b
+
+instance Monoid Request where
+  mempty = blankRequest
