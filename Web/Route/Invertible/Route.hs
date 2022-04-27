@@ -17,6 +17,7 @@ module Web.Route.Invertible.Route
   , routePriority
   , normRoute
   , foldRoute
+  , requestRoutePredicate
   , requestRoute'
   , requestRoute
   , BoundRoute(..)
