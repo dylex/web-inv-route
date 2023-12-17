@@ -125,8 +125,10 @@ instance Applicative f => Alternative (RouteMapT f) where
   empty = RouteMapExactly $ empty
   (<|>) = mappend
 
+{-
 instance MonadTrans RouteMapT where
   lift = exactlyMap
+-}
 
 type RouteState = RouteMapT DynamicState
 -- |The type of a route map element created from a single 'Route'.

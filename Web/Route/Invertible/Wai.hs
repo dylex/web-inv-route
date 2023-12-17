@@ -37,7 +37,7 @@ routeWai = routeRequest . waiRequest
 routeWaiError :: (Status -> ResponseHeaders -> Wai.Request -> a) -> RouteMap (Wai.Request -> a) -> Wai.Request -> a
 routeWaiError e m q = either (\(s, h) -> e s h q) (\a -> a q) $ routeWai q m
 
--- |Equivalent to 'routeWaiError'.
+-- |Specialization of 'routeWaiError'.
 routeWaiApplicationError :: (Status -> ResponseHeaders -> Wai.Application) -> RouteMap Wai.Application -> Wai.Application
 routeWaiApplicationError = routeWaiError
 
